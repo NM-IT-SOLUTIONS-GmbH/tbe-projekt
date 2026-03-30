@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TBE Admin Portal</title>
+<style>
+:root{--br:#8B6914;--bl:#C9963A;--dk:#1A1A18;--sl:#6B7F89;--bd:#E5E0D8;--bg:#FAFAF7;--wh:#fff;--r:6px;--ok:#1D9E75;--er:#E24B4A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:var(--bg);color:var(--dk);min-height:100vh}
+.app{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+.sb{background:var(--dk);display:flex;flex-direction:column}
+.sb-logo{padding:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo img{height:38px;filter:brightness(0) invert(1);opacity:.85}
+.sb-nav{padding:10px 0}
+.ns{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:10px 16px 4px}
+.ni{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,.6);cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.ni:hover{background:rgba(255,255,255,.06);color:#fff}
+.ni.active{background:rgba(201,150,58,.15);color:#C9963A;border-left-color:#C9963A}
+.main{padding:24px 28px;overflow-y:auto;max-height:100vh}
+.pg{display:none}.pg.active{display:block}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+.pt{font-size:22px;font-weight:600;color:var(--dk)}
+.ps{font-size:12px;color:var(--sl);margin-top:2px}
+.card{background:var(--wh);border:1px solid var(--bd);border-radius:8px;padding:18px 22px;margin-bottom:14px}
+.ct{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--br);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+.btn{padding:7px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:sans-serif;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.bp{background:var(--br);color:#fff}.bp:hover{background:var(--bl)}
+.bs{background:var(--wh);color:var(--dk);border:1px solid var(--bd)}.bs:hover{background:var(--bg)}
+.bok{background:var(--ok);color:#fff}.bok:hover{opacity:.9}
+.bsm{padding:4px 10px;font-size:11px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.f2{grid-column:span 2}
+.fl{display:flex;flex-direction:column;gap:3px}
+.fl label{font-size:10px;color:var(--sl);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+.fl input,.fl select,.fl textarea{border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px;font-family:sans-serif;font-size:13px;color:var(--dk);outline:none}
+.fl input:focus,.fl select:focus{border-color:var(--bl)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--sl);padding:6px 9px;text-align:left;border-bottom:1px solid var(--bd);background:var(--bg)}
+.tbl td{padding:8px 9px;border-bottom:1px solid #F5F2EE;vertical-align:middle}
+.tbl tr.c:hover td{background:#FDFCF9;cursor:pointer}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500}
+.bok2{background:rgba(29,158,117,.12);color:#0F6E56}
+.bwarn{background:rgba(186,117,23,.15);color:#633806}
+.binf{background:rgba(24,95,165,.1);color:#0C447C}
+.bgr{background:rgba(61,74,82,.08);color:#3D4A52}
+.ber{background:rgba(226,75,74,.1);color:#A32D2D}
+.sr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--wh);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+.sl2{font-size:10px;color:var(--sl);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px}
+.sv{font-size:20px;font-weight:600;color:var(--dk)}
+.panel{display:none;position:fixed;top:0;right:0;width:460px;height:100vh;background:var(--wh);border-left:1px solid var(--bd);z-index:200;overflow-y:auto;box-shadow:-4px 0 24px rgba(0,0,0,.1)}
+.panel.open{display:block}
+.ph2{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:var(--bg);position:sticky;top:0;z-index:1}
+.pt2{font-size:17px;font-weight:600}
+.pov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:199}
+.pov.open{display:block}
+.pb{padding:18px 20px}
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.tab{padding:7px 13px;font-size:13px;cursor:pointer;color:var(--sl);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:var(--br);border-bottom-color:var(--br);font-weight:500}
+.tabp{display:none}.tabp.active{display:block}
+.sbar{display:flex;gap:8px;margin-bottom:12px}
+.sbar input{flex:1;border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px;font-size:13px;font-family:sans-serif;outline:none}
+.sbar select{border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px;font-size:13px;font-family:sans-serif}
+.ir{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F5F2EE;font-size:13px}
+.ir:last-child{border-bottom:none}
+.il{color:var(--sl);font-size:12px}.iv{font-weight:500}
+.tl{display:flex;flex-direction:column}
+.tli{display:flex;gap:10px;padding:8px 0 8px 12px;border-left:2px solid var(--bd);margin-left:7px;position:relative}
+.tli::before{content:"";position:absolute;left:-4px;top:12px;width:7px;height:7px;border-radius:50%;background:var(--bd);border:2px solid var(--wh)}
+.tli.d::before{background:var(--ok)}
+.td{font-size:11px;color:var(--sl);min-width:60px;padding-top:1px}
+.tt{font-size:13px}.ts2{font-size:11px;color:var(--sl);margin-top:2px}
+.div{height:1px;background:var(--bd);margin:10px 0}
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.mdl{background:#fff;border-radius:10px;padding:22px 26px;width:560px;max-width:92vw;max-height:92vh;overflow-y:auto}
+.mt{font-size:18px;font-weight:600;margin-bottom:3px}
+.ms{font-size:12px;color:var(--sl);margin-bottom:14px}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--dk);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;display:none;align-items:center;gap:7px;z-index:999;max-width:400px}
+.toast.show{display:flex}
+
+.re-warn{background:#FFF3CD;border:1px solid #E24B4A;border-radius:6px;padding:10px 14px;font-size:12px;color:#721c24;margin-bottom:12px;display:none}
+.zahl-section{background:var(--bg);border-radius:6px;padding:12px 14px;margin-bottom:12px}
+.zahl-sect-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--br);margin-bottom:8px}
+.zahl-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.zahl-sum-item{background:var(--wh);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;text-align:center}
+.zahl-sum-label{font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px}
+.zahl-sum-val{font-size:15px;font-weight:600}
+.offen-red{color:var(--er)}.offen-ok{color:var(--ok)}
+
+.sb{background:var(--dk);display:flex;flex-direction:column;min-height:100vh}
+.sb-logo-area{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo-area img{height:42px;width:auto;display:block}
+.sb-logo-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:5px;letter-spacing:.05em}
+.sb-footer{border-top:1px solid rgba(255,255,255,.08);padding:10px;margin-top:auto;flex-shrink:0}
+.sb-mandant-btn{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:9px 11px;cursor:pointer;text-align:left;font-family:sans-serif;display:flex;align-items:center;gap:9px;transition:background .15s}
+.sb-mandant-btn:hover{background:rgba(255,255,255,.11)}
+.sb-mandant-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb-mandant-info{flex:1;min-width:0}
+.sb-mandant-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.sb-mandant-name{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.sb-mandant-action{font-size:12px;color:rgba(255,255,255,.3)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="sb">
+<div class="sb-logo-area">
+  <img src="data:image/png;base64,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" alt="TBE Terassen Fix">
+  <div class="sb-logo-sub">Admin-Portal</div>
+</div>
+<div class="sb-nav">
+<div class="ns">Uebersicht</div>
+<div class="ni active" id="ni-dashboard" onclick="goTo('dashboard')">Dashboard</div>
+<div class="ns">CRM</div>
+<div class="ni" id="ni-kunden" onclick="goTo('kunden')">Kunden und Stammdaten</div>
+<div class="ni" id="ni-anfragen" onclick="goTo('anfragen')">Offene Anfragen</div>
+<div class="ns">Workflow</div>
+<div class="ni" id="ni-angebote" onclick="goTo('angebote')">Angebote</div>
+<div class="ni" id="ni-auftraege" onclick="goTo('auftraege')">Auftraege</div>
+<div class="ni" id="ni-rechnungen" onclick="goTo('rechnungen')">Rechnungen</div>
+<div class="ns">Verwaltung</div>
+<div class="ni" id="ni-mitarbeiter" onclick="goTo('mitarbeiter')">Mitarbeiter</div>
+<div class="ni" id="ni-datev" onclick="goTo('datev')">DATEV Export</div>
+<div class="ni" id="ni-firma" onclick="goTo('firma')">Meine Firma</div>
+</div>
+<div class="sb-footer">
+  <button class="sb-mandant-btn" onclick="openMdl('mandant')">
+    <div class="sb-mandant-dot" id="mandant-dot" style="background:rgba(255,255,255,.25)"></div>
+    <div class="sb-mandant-info">
+      <div class="sb-mandant-label" id="mandant-footer-label" style="color:rgba(255,255,255,.4)">KEIN MANDANT</div>
+      <div class="sb-mandant-name" id="mandant-footer-name">Klicken zum Auswaehlen</div>
+    </div>
+    <div class="sb-mandant-action">&#8646;</div>
+  </button>
+</div>
+</div>
+<div class="main">
+<div class="pg active" id="pg-dashboard">
+<div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Uebersicht April 2025</div></div></div>
+<div class="sr">
+<div class="sc"><div class="sl2">Offene Anfragen</div><div class="sv">4</div></div>
+<div class="sc"><div class="sl2">Laufende Auftraege</div><div class="sv">7</div></div>
+<div class="sc"><div class="sl2">Offene Rechnungen</div><div class="sv">21.919 EUR</div></div>
+<div class="sc"><div class="sl2">Kunden gesamt</div><div class="sv">38</div></div>
+</div>
+<div class="card" id="notif-card"><div class="ct" style="display:flex;justify-content:space-between;align-items:center"><span>Handwerker-Meldungen</span><span id="notif-badge" style="background:var(--er);color:#fff;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:600;display:none">0</span></div><div id="notif-list"><div style="color:var(--sl);font-size:12px;padding:8px 0">Keine Meldungen</div></div></div>
+<div class="card"><div class="ct">Letzte Aktivitaeten</div>
+<div class="tl">
+<div class="tli d"><div class="td">Heute 09:14</div><div><div class="tt">Auftrag AU-2025-047 abgeschlossen</div><div class="ts2">Handwerker: Thomas M.</div></div></div>
+<div class="tli d"><div class="td">Heute 08:30</div><div><div class="tt">Rechnung RE-2025-047 erstellt - 2.284,80 EUR</div><div class="ts2">Meyer Immobilien</div></div></div>
+<div class="tli"><div class="td">Gestern</div><div><div class="tt">Neue Anfrage: Wintergarten Bau</div><div class="ts2">Weber, Klaus per Kontaktformular</div></div></div>
+</div></div></div>
+<div class="pg" id="pg-kunden">
+<div class="ph">
+<div><div class="pt">Kunden und Stammdaten</div><div class="ps">Adressen, Kontaktdaten, DATEV-Nummern</div></div>
+<button class="btn bp" onclick="openMdl('kunde')">+ Neuer Kunde</button>
+</div>
+<div class="sbar"><input type="text" placeholder="Suche Name, Kundennr., Ort..." oninput="filterK(this.value)">
+<select onchange="filterK('')"><option>Alle Kunden</option><option>Newsletter</option></select></div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr><th>Kundennr.</th><th>Name / Firma</th><th>Adresse</th><th>Telefon</th><th>E-Mail</th><th>Debitor</th><th>NL</th><th>Aktionen</th></tr></thead>
+<tbody id="kb"></tbody></table></div></div>
+<div class="pg" id="pg-anfragen">
+<div class="ph"><div><div class="pt">Offene Anfragen</div><div class="ps">Leads aus dem Kontaktformular</div></div></div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr><th>Datum</th><th>Name</th><th>Leistung</th><th>Masse</th><th>Ort</th><th>Status</th><th>Aktion</th></tr></thead>
+<tbody>
+<tr class="c" onclick="showPanel('anfrage','1')"><td>30.04.2025</td><td><b>Weber, Klaus</b></td><td>Wintergarten</td><td>5x4 m</td><td>Krefeld</td><td><span class="badge bwarn">Neu</span></td>
+<td><button class="btn bp bsm" onclick="event.stopPropagation();openAngebotModal('Weber, Klaus')">Angebot</button></td></tr>
+<tr class="c" onclick="showPanel('anfrage','2')"><td>29.04.2025</td><td><b>Hoffmann, Sarah</b></td><td>Terrassendach</td><td>6x3,5 m</td><td>MG</td><td><span class="badge bwarn">Neu</span></td>
+<td><button class="btn bp bsm" onclick="event.stopPropagation();openAngebotModal('Hoffmann, Sarah')">Angebot</button></td></tr>
+<tr class="c" onclick="showPanel('anfrage','3')"><td>28.04.2025</td><td><b>Braun GmbH</b></td><td>Fensterbau</td><td>Sonderanf.</td><td>Duesseldorf</td><td><span class="badge binf">In Bearbeitung</span></td>
+<td><button class="btn bp bsm" onclick="event.stopPropagation();openAngebotModal('Braun GmbH')">Angebot</button></td></tr>
+<tr class="c" onclick="showPanel('anfrage','4')"><td>27.04.2025</td><td><b>Schulz, Marie</b></td><td>Massanfertigung</td><td>&mdash;</td><td>Viersen</td><td><span class="badge bgr">Angebot gesendet</span></td>
+<td><button class="btn bs bsm" onclick="event.stopPropagation();showPanel('anfrage','4')">Ansehen</button></td></tr>
+</tbody></table></div></div>
+<div class="pg" id="pg-angebote">
+<div class="ph">
+<div><div class="pt">Angebote</div><div class="ps">Aus Anfragen oder manuell erstellt</div></div>
+<button class="btn bp" onclick="openAngebotModal('')">+ Neues Angebot</button>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr><th>Nr.</th><th>Datum</th><th>Kunde</th><th>Leistung</th><th>Betrag</th><th>Status</th><th>Aktionen</th></tr></thead>
+<tbody id="ab"></tbody></table></div></div>
+<div class="pg" id="pg-auftraege">
+<div class="ph">
+<div><div class="pt">Auftraege</div><div class="ps">Laufende und abgeschlossene Auftraege</div></div>
+<button class="btn bp" onclick="openAuftragModal('')">+ Neuer Auftrag</button>
+</div>
+<div class="sr">
+<div class="sc"><div class="sl2">Offen / Geplant</div><div class="sv">3</div></div>
+<div class="sc"><div class="sl2">In Bearbeitung</div><div class="sv">4</div></div>
+<div class="sc"><div class="sl2">Abgeschlossen</div><div class="sv">28</div></div>
+<div class="sc"><div class="sl2">Umsatz April</div><div class="sv">18.420 EUR</div></div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr><th>Nr.</th><th>Datum</th><th>Kunde</th><th>Leistung</th><th>Mitarbeiter</th><th>Betrag</th><th>Status</th><th>Aktionen</th></tr></thead>
+<tbody id="aub"></tbody></table></div></div>
+<div class="pg" id="pg-rechnungen">
+<div class="ph">
+<div><div class="pt">Rechnungen</div><div class="ps">Zahlungsstatus, Skonto, Offene Posten</div></div>
+<div style="display:flex;gap:8px">
+<button class="btn bs" onclick="openOPListe()">Offene Posten Liste</button>
+<button class="btn bs" onclick="openReModal('')">+ Manuell</button>
+<button class="btn bp" onclick="openReModal('')">+ Aus Auftrag</button>
+</div></div>
+<div class="sr">
+<div class="sc"><div class="sl2">Offen</div><div class="sv" style="color:var(--er)" id="re-offen-sum">—</div></div>
+<div class="sc"><div class="sl2">Teilw. bezahlt</div><div class="sv" style="color:var(--inf,#185FA5)">1</div></div>
+<div class="sc"><div class="sl2">Bezahlt Monat</div><div class="sv" style="color:var(--ok)">2</div></div>
+<div class="sc"><div class="sl2">Gesamt Brutto</div><div class="sv">21.919 EUR</div></div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr>
+<th>Nr.</th><th>Datum</th><th>Faellig</th><th>Kunde</th><th>Netto</th><th>Brutto</th><th>Offen</th><th>Status</th><th>Aktionen</th>
+</tr></thead><tbody id="reb"></tbody></table></div>
+</div>
+<div class="pg" id="pg-mitarbeiter">
+<div class="ph">
+<div><div class="pt">Mitarbeiter</div><div class="ps">Handwerker, Zuweisung, Status</div></div>
+<button class="btn bp" onclick="openMdl('ma')">+ Mitarbeiter anlegen</button>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<table class="tbl"><thead><tr><th>Name</th><th>Rolle</th><th>Telefon</th><th>Aktueller Auftrag</th><th>Status</th><th>Aktion</th></tr></thead>
+<tbody id="mab"></tbody></table></div></div>
+<div class="pg" id="pg-datev">
+<div class="ph"><div><div class="pt">DATEV Export</div><div class="ps">Buchungsperiode exportieren und abschliessen</div></div></div>
+<div class="sr">
+<div class="sc"><div class="sl2">Belege im Zeitraum</div><div class="sv">7</div></div>
+<div class="sc"><div class="sl2">Netto</div><div class="sv">18.420 EUR</div></div>
+<div class="sc"><div class="sl2">MwSt.</div><div class="sv">3.499 EUR</div></div>
+<div class="sc"><div class="sl2">Brutto</div><div class="sv">21.919 EUR</div></div>
+</div>
+<div class="card"><div class="ct">Buchungsperiode und Export</div>
+<div class="fg" style="margin-bottom:14px">
+<div class="fl"><label>Zeitraum</label><select><option>April 2025</option><option>Maerz 2025</option><option>Q1 2025</option><option>2024 Gesamtjahr</option></select></div>
+<div class="fl"><label>Format</label><select id="dfmt"><option value="csv">DATEV CSV Buchungsstapel</option><option value="pdf">PDF plus ZIP</option><option value="beide">Beides CSV und PDF</option><option value="mail">Direkt an Steuerberater</option></select></div>
+</div>
+<div style="display:flex;gap:10px">
+<button class="btn bp" onclick="doExport()">Exportieren</button>
+<button class="btn bs" onclick="if(confirm('Buchungsperiode April 2025 wirklich abschliessen? Keine Aenderungen mehr moeglich.'))nt('Periode abgeschlossen - GoBD-konform')">Periode abschliessen</button>
+</div></div></div>
+<div class="pg" id="pg-firma">
+<div class="ph"><div><div class="pt">Meine Firma</div><div class="ps">Stammdaten, Briefkopf, DATEV-Konfiguration</div></div></div>
+<div class="card"><div class="ct">Unternehmensdaten</div><div class="fg">
+<div class="fl f2"><label>Firmenname</label><input type="text" id="fn" placeholder="TBE Terassen Fix"></div>
+<div class="fl"><label>Rechtsform</label><select id="frf"><option>GmbH</option><option>UG haftungsbeschraenkt</option><option>GmbH und Co. KG</option><option>Einzelunternehmen</option></select></div>
+<div class="fl"><label>HRB-Nummer</label><input type="text" id="fhrb" placeholder="HRB XXXXX"></div>
+<div class="fl"><label>Strasse und Nr.</label><input type="text" id="fstr" placeholder="Musterstrasse 1"></div>
+<div class="fl"><label>PLZ</label><input type="text" id="fplz" placeholder="41061"></div>
+<div class="fl"><label>Ort</label><input type="text" id="fort" placeholder="Moenchengladbach"></div>
+<div class="fl"><label>Telefon</label><input type="text" id="ftel" placeholder="+49 2161 XXXXXX"></div>
+<div class="fl"><label>E-Mail</label><input type="email" id="fem" placeholder="info@tbe-terassen.de"></div>
+<div class="fl"><label>USt-IdNr.</label><input type="text" id="fust" placeholder="DE XXXXXXXXX"></div>
+<div class="fl"><label>IBAN</label><input type="text" id="fiban" placeholder="DE XX XXXX XXXX XXXX XXXX XX"></div>
+</div></div>
+<div class="card"><div class="ct">DATEV Stammdaten</div><div class="fg3">
+<div class="fl"><label>Beraternummer</label><input type="text" id="fber" placeholder="XXXXX"><small style="font-size:10px;color:var(--sl)">Vom Steuerberater</small></div>
+<div class="fl"><label>Mandantennummer</label><input type="text" id="fman" placeholder="XXXXX"></div>
+<div class="fl"><label>Sachkontenlaenge</label><select id="fskl"><option value="4">4 Stellen SKR03 SKR04</option><option value="8">8 Stellen</option></select></div>
+<div class="fl"><label>Steuerberater E-Mail</label><input type="email" id="fstb" placeholder="kanzlei@steuerberater.de"></div>
+<div class="fl"><label>Steuerberater Name</label><input type="text" id="fstbn" placeholder="Kanzlei Mustermann"></div>
+<div class="fl"><label>Wirtschaftsjahr-Beginn</label><input type="text" id="fwj" value="0101"><small style="font-size:10px;color:var(--sl)">Format TTMM</small></div>
+</div></div>
+
+<div class="card"><div class="ct">Steuerschluessel (Text erscheint auf Rechnung)</div>
+<div style="font-size:11px;color:var(--sl);margin-bottom:10px">Pflege hier alle Steuerschluessel. Der Text erscheint exakt so auf jeder Rechnung unter den Positionen.</div>
+<table style="width:100%;border-collapse:collapse;font-size:12px">
+<thead><tr>
+<th style="padding:6px 8px;background:var(--bg);font-size:10px;text-transform:uppercase;color:var(--sl)">Bezeichnung</th>
+<th style="padding:6px 8px;background:var(--bg);font-size:10px;text-transform:uppercase;color:var(--sl)">Satz %</th>
+<th style="padding:6px 8px;background:var(--bg);font-size:10px;text-transform:uppercase;color:var(--sl)">Text auf Rechnung</th>
+<th style="padding:6px 8px;background:var(--bg);font-size:10px;text-align:center">Aktiv</th>
+<th style="padding:6px 8px;background:var(--bg);width:30px"></th>
+</tr></thead>
+<tbody id="steuer-body"></tbody>
+</table>
+<div style="display:flex;justify-content:space-between;margin-top:10px">
+<button class="btn bs bsm" onclick="addSteuerKey()">+ Steuerschluessel hinzufuegen</button>
+<button class="btn bp bsm" onclick="renderSteuerKeys();nt('Steuerschluessel gespeichert')">Speichern</button>
+</div></div>
+<div style="display:flex;justify-content:flex-end"><button class="btn bp" onclick="saveFirma()">Speichern</button></div>
+
+<div class="card" style="border-color:rgba(226,75,74,.3)">
+<div class="ct" style="color:var(--er)">Mandanten-Verwaltung</div>
+<div style="font-size:12px;color:var(--sl);margin-bottom:14px;line-height:1.6">
+  Hier können Sie Mandanten-Daten zurücksetzen. <b style="color:var(--er)">Achtung: Nicht rückgängig machbar.</b>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+  <button class="btn bs bsm" style="border-color:rgba(226,75,74,.4);color:var(--er)" 
+    onclick="clearLiveNow()">Live-Mandant leeren</button>
+  <button class="btn bs bsm" 
+    onclick="resetMandant('test')">Test-Mandant zurücksetzen</button>
+  <button class="btn bs bsm"
+    onclick="if(confirm('Letzten Mandanten vergessen?')){localStorage.removeItem('tbe_last_mandant');nt('Mandant-Auswahl wird beim nächsten Start gezeigt');}">
+    Mandantenauswahl beim nächsten Start zeigen</button>
+</div></div>
+</div>
+</div></div>
+<div class="pov" id="pov" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+<div class="ph2"><div class="pt2" id="panel-title">Details</div>
+<button style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--sl)" onclick="closePanel()">&#10005;</button>
+</div>
+<div class="pb" id="panel-body"></div>
+</div>
+
+<div class="mbg" id="mdl-kunde" onclick="if(event.target===this)closeMdl('kunde')">
+<div class="mdl"><div class="mt">Neuer Kunde anlegen</div><div class="ms">Kundennummer wird automatisch vergeben</div>
+<div class="fg" style="gap:10px;margin-bottom:10px">
+<div class="fl"><label>Vorname</label><input type="text" id="nkvn" placeholder="Max"></div>
+<div class="fl"><label>Nachname</label><input type="text" id="nknn" placeholder="Mustermann"></div>
+<div class="fl f2"><label>Firma optional</label><input type="text" id="nkfi" placeholder="Mustermann GmbH"></div>
+<div class="fl f2"><label>Strasse und Nr.</label><input type="text" id="nkst" placeholder="Musterstrasse 12"></div>
+<div class="fl"><label>PLZ</label><input type="text" id="nkplz" placeholder="41061"></div>
+<div class="fl"><label>Ort</label><input type="text" id="nkort" placeholder="Moenchengladbach"></div>
+<div class="fl"><label>Telefon</label><input type="tel" id="nktel" placeholder="+49 2161..."></div>
+<div class="fl"><label>E-Mail Haupt</label><input type="email" id="nkem" placeholder="max@beispiel.de"></div>
+<div class="fl"><label>Alternative E-Mail</label><input type="email" id="nkem2" placeholder="Fuer Rechnungen"></div>
+<div class="fl"><label>Newsletter</label><select id="nknl"><option value="1">Ja</option><option value="0">Nein</option></select></div>
+<div class="fl"><label>Debitorennr leer ist auto</label><input type="text" id="nkdeb" placeholder="Auto"></div>
+<div class="fl"><label>Kreditorennr leer ist auto</label><input type="text" id="nkkred" placeholder="Auto"></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('kunde')">Abbrechen</button>
+<button class="btn bp" onclick="saveKunde()">Kunde anlegen</button>
+</div></div></div>
+
+<div class="mbg" id="mdl-angebot" onclick="if(event.target===this)closeMdl('angebot')">
+<div class="mdl" style="width:640px"><div class="mt">Angebot erstellen</div><div class="ms">Positionen hinzufuegen und Preise eingeben</div>
+<div class="fg" style="gap:10px;margin-bottom:14px">
+<div class="fl"><label>Angebotsnr.</label><input type="text" id="ang-nr" readonly style="background:var(--bg)"></div>
+<div class="fl"><label>Datum</label><input type="date" id="ang-datum"></div>
+<div class="fl"><label>Kunde</label><input type="text" id="ang-kunde" placeholder="Kundenname"></div>
+<div class="fl"><label>Leistung / Titel</label><input type="text" id="ang-lst" placeholder="z.B. Terrassenueberdachung"></div>
+</div>
+<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--br);margin-bottom:8px">Positionen</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:8px" id="ang-pos"></table>
+<button class="btn bs bsm" style="margin-bottom:14px" onclick="addAngPos()">+ Position hinzufuegen</button>
+<div style="text-align:right;font-size:13px;margin-bottom:14px">
+<div style="display:flex;justify-content:flex-end;gap:16px;padding:4px 0"><span style="color:var(--sl)">Netto:</span><span id="ang-total" style="font-weight:600">0,00 EUR</span></div>
+<div style="display:flex;justify-content:flex-end;gap:16px;padding:4px 0"><span style="color:var(--sl)">MwSt. 19%:</span><span id="ang-mwst">0,00 EUR</span></div>
+<div style="display:flex;justify-content:flex-end;gap:16px;padding:4px 0;font-size:15px"><span style="color:var(--sl)">Brutto:</span><span id="ang-brutto" style="font-weight:700">0,00 EUR</span></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('angebot')">Abbrechen</button>
+<button class="btn bp" onclick="saveAngebot()">Angebot speichern</button>
+</div></div></div>
+
+<div class="mbg" id="mdl-auftrag" onclick="if(event.target===this)closeMdl('auftrag')">
+<div class="mdl"><div class="mt">Auftrag erstellen</div><div class="ms">Aus Angebot oder manuell</div>
+<div class="fg" style="gap:10px;margin-bottom:14px">
+<div class="fl"><label>Auftragsnr.</label><input type="text" id="au-nr" readonly style="background:var(--bg)"></div>
+<div class="fl"><label>Aus Angebot</label><input type="text" id="au-ang" placeholder="AN-2025-..."></div>
+<div class="fl"><label>Kunde</label><input type="text" id="au-kunde" placeholder="Kundenname"></div>
+<div class="fl"><label>Leistung</label><input type="text" id="au-lst" placeholder="Beschreibung"></div>
+<div class="fl f2"><label>Mitarbeiter zuweisen</label>
+<select id="au-ma"><option value="">Noch nicht zuweisen</option><option>Thomas Mueller</option><option>Stefan Klein</option><option>Marco Schulz</option></select></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('auftrag')">Abbrechen</button>
+<button class="btn bp" onclick="saveAuftrag()">Auftrag anlegen</button>
+</div></div></div>
+
+<div class="mbg" id="mdl-rechnung" onclick="if(event.target===this)closeMdl('rechnung')">
+<div class="mdl" style="width:680px">
+<div class="mt">Rechnung erstellen</div>
+<div class="ms">Aus Auftrag, Nachberechnung oder manuell</div>
+
+<div class="fg" style="gap:10px;margin-bottom:10px">
+<div class="fl"><label>Rechnungsnr.</label><input type="text" id="re-nr" readonly style="background:var(--bg)"></div>
+<div class="fl"><label>Aus Auftrag</label><input type="text" id="re-au" placeholder="AU-2025-..."></div>
+<div class="fl"><label>Kunde</label><input type="text" id="re-kunde" placeholder="Kundenname"></div>
+<div class="fl"><label>Titel / Betreff</label><input type="text" id="re-lst" placeholder="z.B. Terrassenueberdachung"></div>
+<div class="fl f2"><label>Standard-Steuerschluessel</label><select id="re-steuer"></select></div>
+<div class="fl f2" style="flex-direction:row;align-items:center;gap:8px">
+<input type="checkbox" id="re-nachberechnung" style="width:auto">
+<label style="font-size:12px;text-transform:none;letter-spacing:0;color:var(--dk)">Dies ist eine Nachberechnung zu einem bereits abgerechneten Auftrag</label>
+</div>
+</div>
+<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--br);margin-bottom:8px">Positionen</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tbody id="re-pos-body"></tbody></table>
+<button class="btn bs bsm" style="margin-bottom:12px" onclick="addRePos()">+ Position hinzufuegen</button>
+<div style="text-align:right;background:var(--bg);padding:10px 14px;border-radius:6px;margin-bottom:14px;font-size:13px">
+<div style="display:flex;justify-content:flex-end;gap:20px;padding:3px 0"><span style="color:var(--sl)">Netto:</span><span id="re-netto-anzeige" style="font-weight:600">0,00 EUR</span></div>
+<div style="display:flex;justify-content:flex-end;gap:20px;padding:3px 0"><span style="color:var(--sl)">MwSt.:</span><span id="re-mwst-anzeige">0,00 EUR</span></div>
+<div style="display:flex;justify-content:flex-end;gap:20px;padding:3px 0;font-size:15px"><span style="color:var(--sl)">Brutto:</span><span id="re-brutto-anzeige" style="font-weight:700">0,00 EUR</span></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('rechnung')">Abbrechen</button>
+<button class="btn bp" onclick="saveRechnung()">Rechnung erstellen</button>
+</div></div></div></div></div>
+
+<div class="mbg" id="mdl-zuw" onclick="if(event.target===this)closeMdl('zuw')">
+<div class="mdl"><div class="mt">Mitarbeiter zuweisen</div><div class="ms">Handwerker fuer diesen Auftrag auswaehlen</div>
+<input type="hidden" id="zuw-au">
+<div class="fg1" style="gap:10px;margin-bottom:14px">
+<div class="fl"><label>Auftrag</label><input type="text" id="zuw-au-anzeige" readonly style="background:var(--bg)"></div>
+<div class="fl"><label>Mitarbeiter auswaehlen</label><select id="zuw-ma" style="border:1px solid var(--bd);border-radius:var(--r);padding:8px 10px;font-size:13px"></select></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('zuw')">Abbrechen</button>
+<button class="btn bp" onclick="saveZuw()">Zuweisen</button>
+</div></div></div>
+
+<div class="mbg" id="mdl-mail" onclick="if(event.target===this)closeMdl('mail')">
+<div class="mdl"><div class="mt">Per E-Mail senden</div><div class="ms">Dokument wird als PDF-Anhang versendet</div>
+<input type="hidden" id="mail-ref">
+<div class="fg" style="gap:10px;margin-bottom:14px">
+<div class="fl f2"><label>An E-Mail Adresse</label><input type="email" id="mail-an" placeholder="empfaenger@beispiel.de"></div>
+<div class="fl f2"><label>Betreff</label><input type="text" id="mail-betreff" placeholder="TBE Terassen Fix - Dokument"></div>
+<div class="fl f2"><label>Nachricht optional</label><textarea style="border:1px solid var(--bd);border-radius:var(--r);padding:8px 10px;font-size:13px;font-family:sans-serif;resize:vertical;min-height:80px" placeholder="Sehr geehrte Damen und Herren..."></textarea></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('mail')">Abbrechen</button>
+<button class="btn bp" onclick="sendMail()">Senden</button>
+</div></div></div>
+
+<div class="mbg" id="mdl-ma" onclick="if(event.target===this)closeMdl('ma')">
+<div class="mdl"><div class="mt">Mitarbeiter anlegen</div><div class="ms">Handwerker-App-Zugang wird erstellt</div>
+<div class="fg" style="gap:10px;margin-bottom:14px">
+<div class="fl"><label>Vorname</label><input type="text" placeholder="Thomas"></div>
+<div class="fl"><label>Nachname</label><input type="text" placeholder="Mueller"></div>
+<div class="fl"><label>Rolle</label><select><option>Monteur</option><option>Geselle</option><option>Meister</option><option>Azubi</option></select></div>
+<div class="fl"><label>Telefon</label><input type="tel" placeholder="+49 170..."></div>
+<div class="fl f2"><label>E-Mail Login</label><input type="email" placeholder="thomas@tbe-terassen.de"></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('ma')">Abbrechen</button>
+<button class="btn bp" onclick="closeMdl('ma');nt('Mitarbeiter angelegt - App-Zugang per E-Mail gesendet')">Anlegen</button>
+</div></div></div>
+<div class="mbg" id="mdl-zahlung" onclick="if(event.target===this)closeMdl('zahlung')">
+<div class="mdl" style="width:580px">
+<div class="mt">Zahlungsstatus verwalten</div>
+<div class="ms" id="zahl-kunde">Rechnung</div>
+<input type="hidden" id="zahl-nr">
+<div class="zahl-summary">
+<div class="zahl-sum-item"><div class="zahl-sum-label">Rechnungsbetrag</div><div class="zahl-sum-val" id="zahl-brutto">0,00 EUR</div></div>
+<div class="zahl-sum-item"><div class="zahl-sum-label">Bereits gezahlt</div><div class="zahl-sum-val offen-ok" id="zahl-gezahlt">0,00 EUR</div></div>
+<div class="zahl-sum-item"><div class="zahl-sum-label">Noch offen</div><div class="zahl-sum-val offen-red" id="zahl-offen">0,00 EUR</div></div>
+</div>
+<div class="zahl-section"><div class="zahl-sect-title">Zahlungshistorie</div><div id="zahl-history"></div></div>
+<div class="zahl-section"><div class="zahl-sect-title">Neue Zahlung erfassen</div>
+<div class="fg" style="gap:10px;margin-bottom:10px">
+<div class="fl"><label>Datum</label><input type="date" id="zahl-datum"></div>
+<div class="fl"><label>Zahlungsart / Status</label>
+<select id="zahl-art" onchange="zahlArtChange()">
+<option value="vollstaendig">Vollstaendig bezahlt</option>
+<option value="teilweise">Teilzahlung</option>
+<option value="skonto">Zahlung mit Skonto (komplett)</option>
+<option value="teilskonto">Teilzahlung mit Skonto</option>
+<option value="rueckerstattung">Rueckerstattung / Gutschrift</option>
+<option value="offen">Zurueck auf Offen setzen</option>
+</select></div>
+<div class="fl"><label>Betrag EUR (gezahlter Betrag)</label><input type="number" id="zahl-betrag" step="0.01" oninput="zahlCalc()"></div>
+<div class="fl" id="zahl-skonto-row" style="display:none"><label>Skonto</label>
+<div style="display:flex;gap:6px;align-items:center">
+<select id="zahl-skonto-type" onchange="zahlCalc()" style="border:1px solid var(--bd);border-radius:var(--r);padding:7px 8px;font-size:13px;font-family:sans-serif"><option value="prozent">% Prozent</option><option value="fix">EUR Fixbetrag</option></select>
+<input type="number" id="zahl-skonto-val" step="0.01" placeholder="z.B. 2 oder 50" style="flex:1;border:1px solid var(--bd);border-radius:var(--r);padding:7px 10px;font-size:13px;font-family:sans-serif" oninput="zahlCalc()">
+<span style="font-size:11px;color:var(--sl)">= <span id="zahl-skonto-betrag">0,00 EUR</span></span>
+</div></div>
+</div>
+<div style="background:rgba(139,105,20,.06);border-radius:6px;padding:10px 12px;font-size:12px;display:flex;justify-content:space-between">
+<span style="color:var(--sl)">Nach dieser Zahlung offen:</span><span style="font-weight:600" id="zahl-neu-offen">—</span>
+</div>
+<div style="margin-top:6px;font-size:12px;color:var(--sl)" id="zahl-status-preview"></div>
+</div>
+<div style="display:flex;gap:8px;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('zahlung')">Schliessen</button>
+<button class="btn bp" onclick="saveZahlung()">Zahlung speichern</button>
+</div></div></div>
+<div class="mbg" id="mdl-abschlag" onclick="if(event.target===this)closeMdl('abschlag')">
+<div class="mdl" style="width:620px">
+<div class="mt">Rechnung erstellen</div>
+<div class="ms">Auftrag <span id="abd-auftrag"></span></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+<div style="background:var(--bg);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Auftragswert</div><div style="font-size:14px;font-weight:600" id="abd-wert"></div></div>
+<div style="background:rgba(29,158,117,.08);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Bereits berechnet</div><div style="font-size:14px;font-weight:600;color:var(--ok)" id="abd-bereits"></div></div>
+<div style="background:rgba(186,117,23,.08);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Noch offen</div><div style="font-size:14px;font-weight:600;color:var(--br)" id="abd-rest"></div></div>
+</div>
+<div style="font-size:12px;color:var(--sl);margin-bottom:4px">Bereits gezahlt: <span id="abd-bezahlt" style="color:var(--ok);font-weight:500"></span></div>
+
+<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--br);margin:12px 0 6px">Bisherige Rechnungen</div>
+<div id="abd-re-liste" style="margin-bottom:14px;max-height:200px;overflow-y:auto"></div>
+
+<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--br);margin-bottom:10px">Was moechten Sie erstellen?</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+<div style="border:1px solid var(--bd);border-radius:8px;padding:14px;cursor:pointer;transition:all .15s" onclick="waehlAbschlagTyp('abschlag')" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--bd)'">
+<div style="font-size:14px;font-weight:600;margin-bottom:4px">Weitere Abschlagsrechnung</div>
+<div style="font-size:12px;color:var(--sl)">Teilbetrag berechnen, Restbetrag bleibt offen</div>
+</div>
+<div style="border:2px solid var(--br);border-radius:8px;padding:14px;cursor:pointer;background:rgba(139,105,20,.04);transition:all .15s" onclick="waehlAbschlagTyp('schluss')" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--br)'">
+<div style="font-size:14px;font-weight:600;margin-bottom:4px">Schlussrechnung</div>
+<div style="font-size:12px;color:var(--sl)">Restbetrag: <span id="abd-schluss-rest" style="font-weight:600;color:var(--br)"></span></div>
+<div style="font-size:11px;color:var(--sl)">Brutto: <span id="abd-schluss-bru<script>
+
+
+var nxtAU = 48;
+var nxtAN = 34;
+
+var KD = [
+  {nr:"K-2025-001",vn:"Hans",nn:"Mueller",fi:"",str:"Hauptstrasse 5",plz:"41061",ort:"Moenchengladbach",tel:"+49 2161 111222",em:"mueller@mail.de",em2:"",nl:true,deb:"10001",kred:"",status:"aktiv"},
+  {nr:"K-2025-002",vn:"",nn:"Schmidt GmbH",fi:"Schmidt GmbH",str:"Industriestr. 12",plz:"47798",ort:"Krefeld",tel:"+49 2151 223344",em:"info@schmidt-gmbh.de",em2:"buchhaltung@schmidt-gmbh.de",nl:false,deb:"10002",kred:"70002",status:"aktiv"},
+  {nr:"K-2025-003",vn:"Klaus",nn:"Weber",fi:"",str:"Gartenweg 3",plz:"41063",ort:"Moenchengladbach",tel:"+49 170 3344556",em:"k.weber@gmail.com",em2:"",nl:true,deb:"10003",kred:"",status:"aktiv"},
+  {nr:"K-2025-004",vn:"Anna",nn:"Fischer",fi:"",str:"Birkenallee 7",plz:"41069",ort:"Moenchengladbach",tel:"+49 172 4455667",em:"a.fischer@web.de",em2:"",nl:true,deb:"10004",kred:"",status:"aktiv"},
+  {nr:"K-2025-005",vn:"",nn:"Bauer und Soehne",fi:"Bauer und Soehne GmbH",str:"Gewerbepark 18",plz:"40667",ort:"Meerbusch",tel:"+49 2132 556677",em:"kontakt@bauer-soehne.de",em2:"",nl:false,deb:"10005",kred:"70005",status:"aktiv"}
+];
+
+var ANGEBOTE = [
+  {nr:"AN-2025-031",datum:"18.04.2025",kunde:"Bauer und Soehne",leistung:"Glasdach Massanfertigung",netto:2900,mwst:19,status:"angenommen",positionen:[{bez:"Glasdach 5x4m Material",menge:1,einheit:"Pauschal",preis:1800},{bez:"Montage und Einbau",menge:16,einheit:"Std",preis:68.75}]},
+  {nr:"AN-2025-032",datum:"22.04.2025",kunde:"Schulz, Marie",leistung:"Massanfertigung Metall",netto:1840,mwst:19,status:"offen",positionen:[{bez:"Stahlkonstruktion",menge:1,einheit:"Pauschal",preis:1400},{bez:"Oberflaechenbehandlung",menge:1,einheit:"Pauschal",preis:440}]},
+  {nr:"AN-2025-033",datum:"25.04.2025",kunde:"Hoffmann, Sarah",leistung:"Terrassenueberdachung",netto:5200,mwst:19,status:"gesendet",positionen:[{bez:"Aluprofil-Konstruktion 6x3,5m",menge:1,einheit:"Pauschal",preis:3200},{bez:"VSG-Glas Bedachung",menge:21,einheit:"qm",preis:76},{bez:"Montage",menge:18,einheit:"Std",preis:75}]}
+];
+
+
+
+var MA = [
+  {name:"Thomas Mueller",rolle:"Monteur",tel:"+49 170 1234567",em:"t.mueller@tbe-terassen.de",status:"aktiv",auftrag:"AU-2025-047"},
+  {name:"Stefan Klein",rolle:"Monteur",tel:"+49 172 2345678",em:"s.klein@tbe-terassen.de",status:"baustelle",auftrag:"AU-2025-046"},
+  {name:"Marco Schulz",rolle:"Geselle",tel:"+49 151 3456789",em:"m.schulz@tbe-terassen.de",status:"verfuegbar",auftrag:""}
+];
+
+var nxtK=6, nxtA=34, nxtAU=48, nxtRE=48;
+
+function fmt(n){var v=parseFloat(n)||0;return v.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" EUR";}
+function mwstAmt(netto,rate){return netto*rate/100;}
+function brutto(netto,rate){return netto+(netto*rate/100);}
+
+function renderK(list){
+  var b=document.getElementById("kb");if(!b)return;
+  var h="";
+  for(var i=0;i<list.length;i++){
+    var k=list[i];
+    var nm=k.fi?('<small style="color:#6B7F89">'+k.fi+'</small><br>'):"";
+    nm+=k.vn+" "+k.nn;
+    var e2=k.em2?('<br><small style="color:#6B7F89">Alt: '+k.em2+'</small>'):"";
+    var nl=k.nl?'<span class="badge bok2">Ja</span>':'<span class="badge bgr">Nein</span>';
+    h+='<tr class="c" data-nr="'+k.nr+'" data-type="kunde"><td><b>'+k.nr+'</b></td>';
+    h+='<td>'+nm+'</td><td>'+k.str+', '+k.plz+' '+k.ort+'</td><td>'+k.tel+'</td>';
+    h+='<td>'+k.em+e2+'</td><td>'+(k.deb||"&mdash;")+'</td><td>'+nl+'</td>';
+    h+='<td><button class="btn bs bsm" data-nr="'+k.nr+'" data-type="kunde" onclick="event.stopPropagation();showPanel(this.dataset.type,this.dataset.nr)">Stammdaten</button> ';
+    h+='<button class="btn bp bsm" data-kname="'+k.nn+'" onclick="event.stopPropagation();openAngebotModal(this.dataset.kname)">Angebot</button></td></tr>';
+  }
+  b.innerHTML=h;
+  b.querySelectorAll("tr.c").forEach(function(tr){
+    tr.addEventListener("click",function(){showPanel(this.dataset.type,this.dataset.nr);});
+  });
+}
+
+function renderAngebote(){
+  var b=document.getElementById("ab");if(!b)return;
+  var h="";
+  if(!Array.isArray(ANGEBOTE))return;
+  ANGEBOTE.forEach(function(a){
+    var bc=a.status==="angenommen"?"bok2":a.status==="offen"?"bwarn":a.status==="gesendet"?"binf":"ber";
+    var bl=a.status==="angenommen"?"Angenommen":a.status==="offen"?"Offen":a.status==="gesendet"?"Gesendet":"Abgelehnt";
+    h+='<tr class="c" data-nr="'+a.nr+'" data-type="angebot"><td><b>'+a.nr+'</b></td>';
+    h+='<td>'+a.datum+'</td><td>'+a.kunde+'</td><td>'+a.leistung+'</td>';
+    h+='<td>'+fmt(a.netto)+'</td><td><span class="badge '+bc+'">'+bl+'</span></td>';
+    h+='<td><button class="btn bp bsm" data-nr="'+a.nr+'" onclick="event.stopPropagation();openAuftragModal(this.dataset.nr)">Auftrag</button> ';
+    h+='<button class="btn bs bsm" data-nr="'+a.nr+'" onclick="event.stopPropagation();druckPDF(\'angebot\',this.dataset.nr)">PDF</button></td></tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll("tr.c").forEach(function(tr){
+    tr.addEventListener("click",function(){showPanel(this.dataset.type,this.dataset.nr);});
+  });
+}
+
+function renderAuftraege(){
+  var b=document.getElementById("aub");if(!b)return;
+  var h="";
+  if(!Array.isArray(AUFTRAEGE))return;
+  AUFTRAEGE.forEach(function(a){
+    var bc=a.status==="abgeschlossen"?"bok2":a.status==="in_arbeit"?"binf":a.status==="geplant"?"bwarn":"bgr";
+    var bl=a.status==="abgeschlossen"?"Abgeschlossen":a.status==="in_arbeit"?"In Arbeit":a.status==="geplant"?"Geplant":"Offen";
+    h+='<tr class="c" data-nr="'+a.nr+'" data-type="auftrag"><td><b>'+a.nr+'</b></td>';
+    h+='<td>'+a.datum+'</td><td>'+a.kunde+'</td><td>'+a.leistung+'</td>';
+    h+='<td>'+(a.ma||'<span style="color:#C9963A">Nicht zugewiesen</span>')+'</td>';
+    h+='<td>'+fmt(a.netto)+'</td><td><span class="badge '+bc+'">'+bl+'</span></td>';
+    h+='<td>';
+    if(!a.ma){h+='<button class="btn bp bsm" data-nr="'+a.nr+'" onclick="event.stopPropagation();openZuwModal(this.dataset.nr)">Zuweisen</button> ';}
+    h+='<button class="btn bp bsm" data-nr="'+a.nr+'" onclick="event.stopPropagation();openReModal(this.dataset.nr)">RE erstellen</button>';
+    h+='</td></tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll("tr.c").forEach(function(tr){
+    tr.addEventListener("click",function(){showPanel(this.dataset.type,this.dataset.nr);});
+  });
+}
+
+// renderRechnungen -> see abschlag.js
+
+function renderMA(){
+  var b=document.getElementById("mab");if(!b)return;
+  var h="";
+  MA.forEach(function(m,i){
+    var bc=m.status==="aktiv"?"bok2":m.status==="baustelle"?"binf":"bgr";
+    var bl=m.status==="aktiv"?"Aktiv":m.status==="baustelle"?"Auf Baustelle":"Verfuegbar";
+    h+='<tr><td><b>'+m.name+'</b></td><td>'+m.rolle+'</td><td>'+m.tel+'</td>';
+    h+='<td>'+(m.auftrag||"&mdash;")+'</td>';
+    h+='<td><span class="badge '+bc+'">'+bl+'</span></td>';
+    h+='<td><button class="btn bs bsm" data-idx="'+i+'" onclick="showMADetail(this.dataset.idx)">Details</button></td></tr>';
+  });
+  b.innerHTML=h;
+}
+
+function filterK(q){
+  var f=KD.filter(function(k){return (k.vn+k.nn+k.fi+k.nr+k.ort+k.em).toLowerCase().indexOf(q.toLowerCase())>=0;});
+  renderK(f);
+}
+
+function goTo(id){
+  document.querySelectorAll(".pg").forEach(function(p){p.classList.remove("active");});
+  document.querySelectorAll(".ni").forEach(function(n){n.classList.remove("active");});
+  var pg=document.getElementById("pg-"+id);if(pg)pg.classList.add("active");
+  var ni=document.getElementById("ni-"+id);if(ni)ni.classList.add("active");
+  if(id==="angebote")renderAngebote();
+  if(id==="auftraege")renderAuftraege();
+  if(id==="rechnungen")renderRechnungen();
+  if(id==="mitarbeiter")renderMA();
+  if(id==="dashboard"){setTimeout(renderNotifs,50);}
+}
+
+function showPanel(type,id){
+  var panel=document.getElementById("panel");
+  var pov=document.getElementById("pov");
+  var title=document.getElementById("panel-title");
+  var body=document.getElementById("panel-body");
+  var h="";
+
+  if(type==="kunde"){
+    var k=null;
+    for(var i=0;i<KD.length;i++){if(KD[i].nr===id){k=KD[i];break;}}
+    if(!k)return;
+    title.textContent=k.fi||(k.vn+" "+k.nn);
+    h='<div class="tabs"><div class="tab active" onclick="stab(this,\'tb\')">Stammdaten</div>';
+    h+='<div class="tab" onclick="stab(this,\'td2\')">DATEV</div>';
+    h+='<div class="tab" onclick="stab(this,\'th2\')">Historie</div></div>';
+    h+='<div class="tabp active" id="tb"><div class="ct">Basisdaten</div><div class="fg" style="margin-bottom:12px">';
+    h+='<div class="fl"><label>Vorname</label><input id="pk-vn" value="'+k.vn+'"></div>';
+    h+='<div class="fl"><label>Nachname</label><input id="pk-nn" value="'+k.nn+'"></div>';
+    h+='<div class="fl f2"><label>Firma</label><input id="pk-fi" value="'+k.fi+'"></div>';
+    h+='<div class="fl f2"><label>Strasse</label><input id="pk-str" value="'+k.str+'"></div>';
+    h+='<div class="fl"><label>PLZ</label><input id="pk-plz" value="'+k.plz+'"></div>';
+    h+='<div class="fl"><label>Ort</label><input id="pk-ort" value="'+k.ort+'"></div>';
+    h+='<div class="fl"><label>Telefon</label><input id="pk-tel" value="'+k.tel+'"></div>';
+    h+='<div class="fl"><label>E-Mail Haupt</label><input id="pk-em" value="'+k.em+'"></div>';
+    h+='<div class="fl"><label>Alternative E-Mail</label><input id="pk-em2" value="'+k.em2+'" placeholder="Fuer Rechnungen/Dokumente"></div>';
+    h+='<div class="fl"><label>Newsletter</label><select id="pk-nl"><option value="1" '+(k.nl?"selected":"")+'>Ja</option><option value="0" '+(k.nl?"":"selected")+'>Nein</option></select></div>';
+    h+='</div><div style="display:flex;gap:8px">';
+    h+='<button class="btn bp bsm" data-nr="'+id+'" onclick="saveKundePanel(this.dataset.nr)">Speichern</button>';
+    h+='<button class="btn bs bsm" data-kname="'+k.nn+'" onclick="openAngebotModal(this.dataset.kname)">Angebot erstellen</button>';
+    h+='</div></div>';
+    h+='<div class="tabp" id="td2"><div class="ct">DATEV und Buchhaltung</div><div class="fg" style="margin-bottom:12px">';
+    h+='<div class="fl"><label>Kundennummer</label><input value="'+k.nr+'" readonly style="background:var(--bg)"></div>';
+    h+='<div class="fl"><label>Debitorennr.</label><input value="'+k.deb+'"></div>';
+    h+='<div class="fl"><label>Kreditorennr.</label><input value="'+k.kred+'" placeholder="Falls Lieferant"></div>';
+    h+='<div class="fl"><label>Zahlungsziel</label><select><option>14 Tage</option><option>30 Tage</option><option>7 Tage</option><option>Sofort</option></select></div>';
+    h+='<div class="fl f2"><label>IBAN Kunde</label><input placeholder="Fuer SEPA"></div>';
+    h+='<div class="fl"><label>Steuer-ID</label><input placeholder="Optional"></div>';
+    h+='</div><button class="btn bp bsm" onclick="nt(\'DATEV-Daten gespeichert\')">Speichern</button></div>';
+    h+='<div class="tabp" id="th2"><div class="ct">Auftrags- und Rechnungshistorie</div><div class="tl">';
+    RECHNUNGEN.filter(function(r){return r.kunde.indexOf(k.nn)>=0;}).forEach(function(r){
+      h+='<div class="tli d"><div class="td">'+r.datum+'</div><div><div class="tt">'+r.nr+' &mdash; '+fmt(brutto(r.netto,r.mwst))+'</div><div class="ts">'+(r.status==="bezahlt"?"Bezahlt":"Offen")+'</div></div></div>';
+    });
+    h+='</div></div>';
+  }
+
+  else if(type==="angebot"){
+    var a=ANGEBOTE.find(function(x){return x.nr===id;});
+    if(!a){title.textContent=id;h='<p>Angebot nicht gefunden</p>';body.innerHTML=h;panel.classList.add("open");pov.classList.add("open");return;}
+    title.textContent=a.nr;
+    var bc=a.status==="angenommen"?"bok2":a.status==="offen"?"bwarn":"binf";
+    var bl=a.status==="angenommen"?"Angenommen":a.status==="offen"?"Offen":"Gesendet";
+    h='<span class="badge '+bc+'" style="margin-bottom:10px;display:inline-block">'+bl+'</span>';
+    h+='<div class="ir"><span class="il">Kunde</span><span class="iv">'+a.kunde+'</span></div>';
+    h+='<div class="ir"><span class="il">Leistung</span><span class="iv">'+a.leistung+'</span></div>';
+    h+='<div class="ir"><span class="il">Datum</span><span class="iv">'+a.datum+'</span></div>';
+    h+='<div class="div"></div><div class="ct">Positionen</div>';
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    h+='<tr style="background:var(--bg)"><th style="padding:5px 8px;text-align:left">Beschreibung</th><th style="padding:5px 8px;text-align:right">Menge</th><th style="padding:5px 8px;text-align:left">Einh.</th><th style="padding:5px 8px;text-align:right">Preis</th><th style="padding:5px 8px;text-align:right">Gesamt</th></tr>';
+    a.positionen.forEach(function(p){
+      h+='<tr style="border-bottom:1px solid #F5F2EE"><td style="padding:6px 8px">'+p.bez+'</td><td style="padding:6px 8px;text-align:right">'+p.menge+'</td><td style="padding:6px 8px">'+p.einheit+'</td><td style="padding:6px 8px;text-align:right">'+fmt(p.preis)+'</td><td style="padding:6px 8px;text-align:right;font-weight:500">'+fmt(p.menge*p.preis)+'</td></tr>';
+    });
+    h+='</table>';
+    h+='<div style="text-align:right;margin-top:12px;font-size:13px">';
+    h+='<div class="ir"><span class="il">Netto</span><span class="iv">'+fmt(a.netto)+'</span></div>';
+    h+='<div class="ir"><span class="il">MwSt. '+a.mwst+'%</span><span class="iv">'+fmt(mwstAmt(a.netto,a.mwst))+'</span></div>';
+    h+='<div class="ir"><span class="il" style="font-weight:600">Brutto</span><span class="iv" style="font-size:15px">'+fmt(brutto(a.netto,a.mwst))+'</span></div>';
+    h+='</div>';
+    h+='<div class="div"></div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+    h+='<button class="btn bp bsm" data-nr="'+a.nr+'" onclick="openAuftragModal(this.dataset.nr)">Auftrag erstellen</button>';
+    h+='<button class="btn bs bsm" data-nr="'+a.nr+'" onclick="druckPDF(\'angebot\',this.dataset.nr)">PDF herunterladen</button>';
+    h+='<button class="btn bs bsm" data-nr="'+a.nr+'" onclick="openMailModal(this.dataset.nr)">Per E-Mail senden</button>';
+    h+='</div>';
+  }
+
+  else if(type==="auftrag"){
+    var au=AUFTRAEGE.find(function(x){return x.nr===id;});
+    if(!au){title.textContent=id;body.innerHTML="<p>Auftrag nicht gefunden</p>";panel.classList.add("open");pov.classList.add("open");return;}
+    title.textContent=au.nr;
+    var bc2=au.status==="abgeschlossen"?"bok2":au.status==="in_arbeit"?"binf":"bwarn";
+    var bl2=au.status==="abgeschlossen"?"Abgeschlossen":au.status==="in_arbeit"?"In Arbeit":"Geplant";
+    h='<span class="badge '+bc2+'" style="margin-bottom:10px;display:inline-block">'+bl2+'</span>';
+    h+='<div class="ir"><span class="il">Kunde</span><span class="iv">'+au.kunde+'</span></div>';
+    h+='<div class="ir"><span class="il">Leistung</span><span class="iv">'+au.leistung+'</span></div>';
+    h+='<div class="ir"><span class="il">Mitarbeiter</span><span class="iv">'+(au.ma||'<span style="color:#C9963A">Noch nicht zugewiesen</span>')+'</span></div>';
+    h+='<div class="ir"><span class="il">Datum</span><span class="iv">'+au.datum+'</span></div>';
+    h+='<div class="ir"><span class="il">Netto</span><span class="iv">'+fmt(au.netto)+'</span></div>';
+    h+='<div class="ir"><span class="il">Brutto</span><span class="iv" style="font-size:15px">'+fmt(brutto(au.netto,au.mwst))+'</span></div>';
+    if(au.status==="abgeschlossen"){
+      h+='<div class="div"></div><div class="ct">Check-in / Check-out</div><div class="tl">';
+      h+='<div class="tli d"><div class="td">08:02</div><div><div class="tt">Check-in</div><div class="ts">'+au.ma+' GPS Baustelle</div></div></div>';
+      h+='<div class="tli d"><div class="td">11:15</div><div><div class="tt">Check-out</div><div class="ts">Baustelle sauber - Arbeit erledigt</div></div></div>';
+      h+='<div class="tli d"><div class="td">11:17</div><div><div class="tt">Kundenunterschrift</div><div class="ts">Digital vorhanden</div></div></div></div>';
+    }
+    h+='<div class="div"></div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+    if(!au.ma){h+='<button class="btn bp bsm" data-nr="'+id+'" onclick="openZuwModal(this.dataset.nr)">Mitarbeiter zuweisen</button>';}
+    h+='<button class="btn bp bsm" data-nr="'+id+'" onclick="openReModal(this.dataset.nr)">Rechnung erstellen</button>';
+    h+='<button class="btn bs bsm" data-nr="'+id+'" onclick="druckPDF(\'auftrag\',this.dataset.nr)">PDF Abschlussbericht</button>';
+    h+='</div>';
+  }
+
+  else if(type==="rechnung"){
+    var r=RECHNUNGEN.find(function(x){return x.nr===id;});
+    if(!r){title.textContent=id;body.innerHTML="<p>Rechnung nicht gefunden</p>";panel.classList.add("open");pov.classList.add("open");return;}
+    title.textContent=r.nr;
+    var bc3=r.status==="offen"?"bwarn":"bok2";
+    h='<span class="badge '+bc3+'" style="margin-bottom:10px;display:inline-block">'+(r.status==="offen"?"Offen":"Bezahlt")+'</span>';
+    h+='<div class="ir"><span class="il">Kunde</span><span class="iv">'+r.kunde+'</span></div>';
+    h+='<div class="ir"><span class="il">Leistung</span><span class="iv">'+r.leistung+'</span></div>';
+    h+='<div class="ir"><span class="il">Rechnungsdatum</span><span class="iv">'+r.datum+'</span></div>';
+    h+='<div class="ir"><span class="il">Faellig am</span><span class="iv">'+r.faellig+'</span></div>';
+    h+='<div class="ir"><span class="il">Netto</span><span class="iv">'+fmt(r.netto)+'</span></div>';
+    h+='<div class="ir"><span class="il">MwSt. '+r.mwst+'%</span><span class="iv">'+fmt(mwstAmt(r.netto,r.mwst))+'</span></div>';
+    h+='<div class="ir"><span class="il" style="font-weight:600">Brutto</span><span class="iv" style="font-size:15px">'+fmt(brutto(r.netto,r.mwst))+'</span></div>';
+    h+='<div class="div"></div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+    if(r.status==="offen"){h+='<button class="btn bok bsm" data-nr="'+id+'" onclick="markBezahlt(this.dataset.nr)">Als bezahlt markieren</button>';}
+    h+='<button class="btn bp bsm" data-nr="'+id+'" onclick="druckPDF(\'rechnung\',this.dataset.nr)">PDF herunterladen</button>';
+    h+='<button class="btn bs bsm" data-nr="'+id+'" onclick="openMailModal(this.dataset.nr)">Per E-Mail senden</button>';
+    h+='</div>';
+  }
+
+  else if(type==="anfrage"){
+    title.textContent="Anfrage Nr. "+id;
+    h='<span class="badge bwarn" style="margin-bottom:10px;display:inline-block">Neue Anfrage</span>';
+    h+='<div class="ir"><span class="il">Name</span><span class="iv">Weber, Klaus</span></div>';
+    h+='<div class="ir"><span class="il">Leistung</span><span class="iv">Wintergarten</span></div>';
+    h+='<div class="ir"><span class="il">Masse</span><span class="iv">5 x 4 m</span></div>';
+    h+='<div class="ir"><span class="il">Ort</span><span class="iv">Krefeld</span></div>';
+    h+='<div class="ir"><span class="il">Telefon</span><span class="iv">+49 170 3344556</span></div>';
+    h+='<div class="ir"><span class="il">E-Mail</span><span class="iv"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="305b1e475552554270575d51595c1e535f5d">[email&#160;protected]</a></span></div>';
+    h+='<div class="div"></div><div style="display:flex;gap:8px">';
+    h+='<button class="btn bp bsm" onclick="openAngebotModal(\'Weber, Klaus\')">Angebot erstellen</button>';
+    h+='<button class="btn bs bsm" onclick="openMdl(\'kunde\')">Als Kunde anlegen</button></div>';
+  }
+
+  body.innerHTML=h;
+  panel.classList.add("open");
+  pov.classList.add("open");
+}
+
+function closePanel(){
+  document.getElementById("panel").classList.remove("open");
+  document.getElementById("pov").classList.remove("open");
+}
+
+function stab(el,tid){
+  var pb=el.closest(".pb")||el.closest(".mdl");if(!pb)return;
+  pb.querySelectorAll(".tab").forEach(function(t){t.classList.remove("active");});
+  el.classList.add("active");
+  pb.querySelectorAll(".tabp").forEach(function(t){t.classList.remove("active");});
+  var tp=document.getElementById(tid);if(tp)tp.classList.add("active");
+}
+
+function openMdl(id){var m=document.getElementById("mdl-"+id);if(m)m.classList.add("open");}
+function closeMdl(id){var m=document.getElementById("mdl-"+id);if(m)m.classList.remove("open");}
+
+function saveKunde(){
+  var nr="K-2025-00"+nxtK;nxtK++;
+  var k={nr:nr,vn:document.getElementById("nkvn").value,nn:document.getElementById("nknn").value,fi:document.getElementById("nkfi").value,str:document.getElementById("nkst").value,plz:document.getElementById("nkplz").value,ort:document.getElementById("nkort").value,tel:document.getElementById("nktel").value,em:document.getElementById("nkem").value,em2:document.getElementById("nkem2").value,nl:document.getElementById("nknl").value==="1",deb:document.getElementById("nkdeb").value||("1000"+nxtK),kred:document.getElementById("nkkred").value};
+  KD.unshift(k);renderK(KD);closeMdl("kunde");
+  nt("Kunde "+nr+" angelegt - Bestaetigung per E-Mail gesendet");
+}
+
+function saveKundePanel(nr){
+  var k=KD.find(function(x){return x.nr===nr;});if(!k)return;
+  k.vn=document.getElementById("pk-vn").value;
+  k.nn=document.getElementById("pk-nn").value;
+  k.fi=document.getElementById("pk-fi").value;
+  k.str=document.getElementById("pk-str").value;
+  k.plz=document.getElementById("pk-plz").value;
+  k.ort=document.getElementById("pk-ort").value;
+  k.tel=document.getElementById("pk-tel").value;
+  k.em=document.getElementById("pk-em").value;
+  k.em2=document.getElementById("pk-em2").value;
+  k.nl=document.getElementById("pk-nl").value==="1";
+  renderK(KD);nt("Stammdaten fuer "+k.nn+" gespeichert");
+}
+
+function openAngebotModal(kunde){
+  document.getElementById("ang-kunde").value=kunde||"";
+  document.getElementById("ang-nr").value="AN-2025-0"+nxtA;
+  renderAngPos();
+  openMdl("angebot");
+}
+
+var angPos=[{bez:"",menge:1,einheit:"Pauschal",preis:0}];
+
+function renderAngPos(){
+  var b=document.getElementById("ang-pos");if(!b)return;
+  var h='<tr style="background:var(--bg)"><th style="padding:5px 8px;text-align:left">Beschreibung</th><th style="padding:5px 8px;width:60px">Menge</th><th style="padding:5px 8px;width:70px">Einheit</th><th style="padding:5px 8px;width:90px;text-align:right">Preis EUR</th><th style="padding:5px 8px;width:90px;text-align:right">Gesamt</th><th style="padding:5px 8px;width:30px"></th></tr>';
+  var total=0;
+  angPos.forEach(function(p,i){
+    var gs=p.menge*p.preis;total+=gs;
+    h+='<tr><td><input style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px" value="'+p.bez+'" oninput="angPos['+i+'].bez=this.value"></td>';
+    h+='<td><input type="number" style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px;text-align:right" value="'+p.menge+'" oninput="angPos['+i+'].menge=parseFloat(this.value)||0;angCalc()"></td>';
+    h+='<td><select style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px;font-size:12px" onchange="angPos['+i+'].einheit=this.value"><option '+(p.einheit==="Pauschal"?"selected":"")+'>Pauschal</option><option '+(p.einheit==="Std"?"selected":"")+'>Std</option><option '+(p.einheit==="qm"?"selected":"")+'>qm</option><option '+(p.einheit==="Stk"?"selected":"")+'>Stk</option></select></td>';
+    h+='<td><input type="number" style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px;text-align:right" value="'+p.preis+'" oninput="angPos['+i+'].preis=parseFloat(this.value)||0;angCalc()"></td>';
+    h+='<td style="text-align:right;font-size:12px;padding:4px 8px;font-weight:500">'+fmt(gs)+'</td>';
+    h+='<td style="text-align:center"><button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px" onclick="angPos.splice('+i+',1);renderAngPos()">x</button></td></tr>';
+  });
+  h+='<tr><td colspan="4" style="text-align:right;padding:6px 8px;font-size:12px;font-weight:500">Netto gesamt:</td><td style="text-align:right;padding:6px 8px;font-size:13px;font-weight:600">'+fmt(total)+'</td><td></td></tr>';
+  document.getElementById("ang-pos").innerHTML=h;
+  document.getElementById("ang-total").textContent=fmt(total);
+  var mws=total*0.19;
+  document.getElementById("ang-mwst").textContent=fmt(mws);
+  document.getElementById("ang-brutto").textContent=fmt(total+mws);
+}
+
+function angCalc(){renderAngPos();}
+
+function addAngPos(){angPos.push({bez:"",menge:1,einheit:"Pauschal",preis:0});renderAngPos();}
+
+function saveAngebot(){
+  var kunde=document.getElementById("ang-kunde").value;
+  var lst=document.getElementById("ang-lst").value;
+  var total=angPos.reduce(function(s,p){return s+p.menge*p.preis;},0);
+  var a={nr:"AN-2025-0"+nxtA,datum:new Date().toLocaleDateString("de-DE"),kunde:kunde,leistung:lst,netto:total,mwst:19,status:"offen",positionen:JSON.parse(JSON.stringify(angPos))};
+  nxtA++;ANGEBOTE.unshift(a);renderAngebote();closeMdl("angebot");closePanel();
+  nt("Angebot "+a.nr+" erstellt - Kunde: "+kunde);
+}
+
+function openAuftragModal(angNr){
+  var a=ANGEBOTE.find(function(x){return x.nr===angNr;});
+  document.getElementById("au-nr").value="AU-2025-0"+nxtAU;
+  document.getElementById("au-ang").value=angNr||(a?a.nr:"");
+  document.getElementById("au-kunde").value=a?a.kunde:"";
+  document.getElementById("au-lst").value=a?a.leistung:"";
+  document.getElementById("au-ma").value="";
+  openMdl("auftrag");
+}
+
+function saveAuftrag(){
+  var au={nr:document.getElementById("au-nr").value,datum:new Date().toLocaleDateString("de-DE"),kunde:document.getElementById("au-kunde").value,leistung:document.getElementById("au-lst").value,ma:document.getElementById("au-ma").value,netto:0,mwst:19,status:"geplant",angebotNr:document.getElementById("au-ang").value};
+  var a=ANGEBOTE.find(function(x){return x.nr===au.angebotNr;});
+  if(a){au.netto=a.netto;au.auftragswert=a.netto;a.status="angenommen";}else{au.auftragswert=0;}
+  au.rechnungen=[];
+  nxtAU++;
+  AUFTRAEGE.unshift(au);
+  renderAuftraege();
+  closeMdl("auftrag");
+  closePanel();
+  saveDaten();
+  nt("Auftrag "+au.nr+" angelegt — "+au.leistung);
+}
+
+// openReModal -> see abschlag.js
+
+// reCalc -> see abschlag.js
+
+// saveRechnung -> see abschlag.js
+
+// markBezahlt -> see abschlag.js
+
+function openZuwModal(auNr){
+  document.getElementById("zuw-au").value=auNr;
+  var sel=document.getElementById("zuw-ma");sel.innerHTML="";
+  MA.forEach(function(m){sel.innerHTML+='<option value="'+m.name+'">'+m.name+' ('+m.rolle+') - '+(m.status==="verfuegbar"?"Verfuegbar":"Beschaeftigt")+'</option>';});
+  openMdl("zuw");
+}
+
+function saveZuw(){
+  var auNr=document.getElementById("zuw-au").value;
+  var maName=document.getElementById("zuw-ma").value;
+  var au=AUFTRAEGE.find(function(x){return x.nr===auNr;});
+  if(au){au.ma=maName;if(au.status==="geplant")au.status="in_arbeit";}
+  var m=MA.find(function(x){return x.name===maName;});if(m){m.auftrag=auNr;m.status="baustelle";}
+  renderAuftraege();renderMA();closeMdl("zuw");closePanel();
+  nt(maName+" wurde Auftrag "+auNr+" zugewiesen");
+}
+
+function openMailModal(nr){
+  document.getElementById("mail-betreff").value="TBE Terassen Fix - "+nr;
+  document.getElementById("mail-an").value="";
+  document.getElementById("mail-ref").value=nr;
+  openMdl("mail");
+}
+
+function sendMail(){
+  var an=document.getElementById("mail-an").value;
+  var nr=document.getElementById("mail-ref").value;
+  if(!an){alert("Bitte E-Mail-Adresse eingeben");return;}
+  closeMdl("mail");nt("Dokument "+nr+" per E-Mail an "+an+" gesendet");
+}
+
+function showMADetail(idx){
+  var m=MA[idx];if(!m)return;
+  var panel=document.getElementById("panel");
+  var pov=document.getElementById("pov");
+  document.getElementById("panel-title").textContent=m.name;
+  var h='<div class="ct">Mitarbeiterdaten</div>';
+  h+='<div class="ir"><span class="il">Rolle</span><span class="iv">'+m.rolle+'</span></div>';
+  h+='<div class="ir"><span class="il">Telefon</span><span class="iv">'+m.tel+'</span></div>';
+  h+='<div class="ir"><span class="il">E-Mail</span><span class="iv">'+m.em+'</span></div>';
+  h+='<div class="ir"><span class="il">Aktueller Auftrag</span><span class="iv">'+(m.auftrag||"Keiner")+'</span></div>';
+  h+='<div class="div"></div><div class="ct">Zeiterfassung dieser Woche</div>';
+  h+='<div class="ir"><span class="il">Montag</span><span class="iv">8,0 Std</span></div>';
+  h+='<div class="ir"><span class="il">Dienstag</span><span class="iv">7,5 Std</span></div>';
+  h+='<div class="ir"><span class="il">Mittwoch</span><span class="iv">8,25 Std</span></div>';
+  h+='<div class="ir"><span class="il">Gesamt Woche</span><span class="iv" style="font-weight:600">23,75 Std</span></div>';
+  h+='<div class="div"></div><div style="display:flex;gap:8px">';
+  h+='<button class="btn bp bsm" onclick="openZuwModal(\'\')">Auftrag zuweisen</button>';
+  h+='<button class="btn bs bsm" onclick="nt(\'App-Login-Link gesendet\')">Login-Link senden</button>';
+  h+='</div>';
+  document.getElementById("panel-body").innerHTML=h;
+  panel.classList.add("open");pov.classList.add("open");
+}
+
+// druckPDF -> see abschlag.js
+
+function doExport(){
+  var fmt2=document.getElementById("dfmt");
+  var lines=[
+    '"EXTF";700;21;"Buchungsstapel";4;;;"RE";"";67890;12345;2025;0101;"";1;;;"";0;"";""',
+    "Umsatz;Soll/Haben;WKZ;Kurs;Basis;WKZ;Konto;Gegenkonto;BU;Datum;Beleg1;Beleg2;Skonto;Text"
+  ];
+  RECHNUNGEN.forEach(function(r){
+    var br2=brutto(r.netto,r.mwst);
+    var d=r.datum.split(".").reverse().join("").substr(2);
+    lines.push('"'+br2.toFixed(2).replace(".",",")+'";"S";"EUR";;;"EUR";"8400";"'+(r.netto>2000?"10001":"10002")+'";"";'+d+';"'+r.nr+'";"";;"'+r.leistung+'"');
+  });
+  var csv="\uFEFF"+lines.join("\r\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="DATEV_Export.csv";a.click();
+  nt("DATEV CSV heruntergeladen - "+RECHNUNGEN.length+" Belege");
+}
+
+function saveFirma(){
+  var ids=["fn","frf","fhrb","fstr","fplz","fort","ftel","fem","fust","fiban","fber","fman","fskl","fstb","fstbn","fwj"];
+  var data={};
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)data[id]=el.value;});
+  try{localStorage.setItem("tbe_f",JSON.stringify(data));}catch(e){}
+  nt("Firmendaten gespeichert");
+}
+
+function loadFirma(){
+  try{var data=JSON.parse(localStorage.getItem("tbe_f")||"{}");Object.keys(data).forEach(function(id){var el=document.getElementById(id);if(el)el.value=data[id];});}catch(e){}
+}
+
+function nt(msg){
+  document.getElementById("toast-msg").textContent=msg;
+  var t=document.getElementById("toast");t.classList.add("show");
+  setTimeout(function(){t.classList.remove("show");},3000);
+}
+
+
+
+
+// ═══════════════════════════════════════════════════════
+// STEUERSCHLUESSEL - in Stammdaten pflegbar
+// ═══════════════════════════════════════════════════════
+var STEUER_KEYS = [
+  {id:"s19", rate:19, label:"19% MwSt.", text:"zuzueglich 19% Umsatzsteuer", aktiv:true},
+  {id:"s7",  rate:7,  label:"7% MwSt. (erm.)", text:"zuzueglich 7% Umsatzsteuer (ermaessigt)", aktiv:true},
+  {id:"s13b",rate:0,  label:"0% §13b UStG", text:"Steuerschuldnerschaft des Leistungsempfaengers gemaess §13b UStG. Der Leistungsempfaenger schuldet die Umsatzsteuer.", aktiv:true},
+  {id:"sig", rate:0,  label:"0% Innergemeinsch.", text:"Steuerfreie innergemeinschaftliche Lieferung gemaess §4 Nr. 1b UStG.", aktiv:true},
+  {id:"sfr", rate:0,  label:"0% Steuerfrei", text:"Umsatzsteuerfreie Leistung gemaess §4 UStG.", aktiv:true}
+];
+
+
+// ═══════════════════════════════════════════════════════
+// ABSCHLAGSRECHNUNGS-SYSTEM
+// Auftrag → 1. Abschlag → 2. Abschlag → Schlussrechnung
+// ═══════════════════════════════════════════════════════
+
+// Erweiterte Auftrags-Daten mit Abrechnungshistorie
+var AUFTRAEGE = [
+  {nr:"AU-2025-047",datum:"28.04.2025",kunde:"Meyer Immobilien",leistung:"Fensterbau 6 Einheiten",
+   ma:"Thomas Mueller",auftragswert:3200,mwst:19,status:"abgeschlossen",angebotNr:"AN-2025-029",
+   rechnungen:["RE-2025-047"]},
+  {nr:"AU-2025-046",datum:"26.04.2025",kunde:"Hoffmann, Peter",leistung:"Wintergarten Bau",
+   ma:"Stefan Klein",auftragswert:8500,mwst:19,status:"in_arbeit",angebotNr:"",
+   rechnungen:["RE-2025-046"]},
+  {nr:"AU-2025-045",datum:"22.04.2025",kunde:"Bauer und Soehne",leistung:"Glasdach Massanfertigung",
+   ma:"",auftragswert:5800,mwst:19,status:"geplant",angebotNr:"AN-2025-031",
+   rechnungen:[]},
+  {nr:"AU-2025-044",datum:"18.04.2025",kunde:"Fischer, Anna",leistung:"Terrassenueberdachung",
+   ma:"Marco Schulz",auftragswert:4200,mwst:19,status:"abgeschlossen",angebotNr:"",
+   rechnungen:["RE-2025-044a","RE-2025-044b","RE-2025-044"]}
+];
+
+// Rechnungen mit Abschlag-Info
+var RECHNUNGEN = [
+  {nr:"RE-2025-047",datum:"28.04.2025",faellig:"12.05.2025",
+   kunde:"Meyer Immobilien",leistung:"Fensterbau 6 Einheiten",
+   auftragNr:"AU-2025-047",abschlagTyp:"schluss",abschlagNr:1,
+   positionen:[
+     {bez:"Fensterbau 6 Einheiten",menge:1,einheit:"Pauschal",preis:1920,steuerKey:"s19"}
+   ],
+   netto:1920,steuerKey:"s19",status:"offen",
+   zahlungen:[],skonto:null},
+
+  {nr:"RE-2025-046",datum:"22.04.2025",faellig:"06.05.2025",
+   kunde:"Hoffmann, Peter",leistung:"Wintergarten Bau — 1. Abschlag",
+   auftragNr:"AU-2025-046",abschlagTyp:"abschlag",abschlagNr:1,
+   positionen:[
+     {bez:"Wintergarten Bau — 1. Abschlag 40%",menge:1,einheit:"Pauschal",preis:3400,steuerKey:"s19"}
+   ],
+   netto:3400,steuerKey:"s19",status:"bezahlt",
+   zahlungen:[{datum:"01.05.2025",betrag:4046,art:"Vollstaendig bezahlt"}],skonto:null},
+
+  // Fischer Anna: 1. Abschlag
+  {nr:"RE-2025-044a",datum:"05.04.2025",faellig:"19.04.2025",
+   kunde:"Fischer, Anna",leistung:"Terrassenueberdachung — 1. Abschlag",
+   auftragNr:"AU-2025-044",abschlagTyp:"abschlag",abschlagNr:1,
+   positionen:[
+     {bez:"1. Abschlag 30% — Terrassenueberdachung",menge:1,einheit:"Pauschal",preis:1260,steuerKey:"s19"}
+   ],
+   netto:1260,steuerKey:"s19",status:"bezahlt",
+   zahlungen:[{datum:"17.04.2025",betrag:1499.40,art:"Vollstaendig bezahlt"}],skonto:null},
+
+  // Fischer Anna: 2. Abschlag
+  {nr:"RE-2025-044b",datum:"14.04.2025",faellig:"28.04.2025",
+   kunde:"Fischer, Anna",leistung:"Terrassenueberdachung — 2. Abschlag",
+   auftragNr:"AU-2025-044",abschlagTyp:"abschlag",abschlagNr:2,
+   positionen:[
+     {bez:"2. Abschlag 40% — Terrassenueberdachung",menge:1,einheit:"Pauschal",preis:1680,steuerKey:"s19"}
+   ],
+   netto:1680,steuerKey:"s19",status:"bezahlt",
+   zahlungen:[{datum:"26.04.2025",betrag:1999.20,art:"Vollstaendig bezahlt"}],skonto:null},
+
+  // Fischer Anna: Schlussrechnung
+  {nr:"RE-2025-044",datum:"22.04.2025",faellig:"06.05.2025",
+   kunde:"Fischer, Anna",leistung:"Terrassenueberdachung — Schlussrechnung",
+   auftragNr:"AU-2025-044",abschlagTyp:"schluss",abschlagNr:3,
+   positionen:[
+     {bez:"Terrassenueberdachung gesamt",menge:1,einheit:"Pauschal",preis:4200,steuerKey:"s19"},
+     {bez:"abzueglich 1. Abschlag RE-2025-044a (bezahlt 17.04.2025)",menge:1,einheit:"Pauschal",preis:-1260,steuerKey:"s19"},
+     {bez:"abzueglich 2. Abschlag RE-2025-044b (bezahlt 26.04.2025)",menge:1,einheit:"Pauschal",preis:-1680,steuerKey:"s19"}
+   ],
+   netto:1260,steuerKey:"s19",status:"bezahlt",
+   zahlungen:[{datum:"04.05.2025",betrag:1499.40,art:"Vollstaendig bezahlt"}],skonto:null},
+
+  {nr:"RE-2025-045",datum:"18.04.2025",faellig:"02.05.2025",
+   kunde:"Bauer und Soehne",leistung:"Glasdach",
+   auftragNr:"AU-2025-045",abschlagTyp:"abschlag",abschlagNr:1,
+   positionen:[{bez:"Glasdach Massanfertigung 1. Abschlag 50%",menge:1,einheit:"Pauschal",preis:2900,steuerKey:"s19"}],
+   netto:2900,steuerKey:"s19",status:"teilweise",
+   zahlungen:[{datum:"25.04.2025",betrag:1500,art:"Teilzahlung"}],skonto:null}
+];
+
+
+// ── Hilfsfunktionen ──────────────────────────────────────────
+function getSteuer(id){return STEUER_KEYS.find(function(s){return s.id===id;})||STEUER_KEYS[0];}
+function fmtE(n){var v=parseFloat(n)||0;return v.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" EUR";}
+function fmtD(isoStr){return isoStr?isoStr.split("-").reverse().join("."):"—";}
+
+function calcRechnung(r){
+  if(!r) return {netto:0,mwst:0,brutto:0,gezahlt:0,offen:0,rate:19};
+  var pos=r.positionen||[];
+  var netto=pos.reduce(function(s,p){return s+((parseFloat(p.menge)||0)*(parseFloat(p.preis)||0));},0);
+  var sk=getSteuer(r.steuerKey||"s19");
+  var mwstB=netto>0?netto*sk.rate/100:0;
+  var bru=netto+mwstB;
+  var zahl=r.zahlungen||[];
+  var gez=zahl.reduce(function(s,z){return s+(parseFloat(z.betrag)||0);},0);
+  var off=Math.max(0,bru-gez);
+  return {netto:netto,mwst:mwstB,brutto:bru,gezahlt:gez,offen:off,rate:sk.rate};
+}
+
+function getAuftragAbrechnungsstand(auNr){
+  var reList=RECHNUNGEN.filter(function(r){return r.auftragNr===auNr;});
+  var au=AUFTRAEGE.find(function(a){return a.nr===auNr;});
+  var auftragswert=au?au.auftragswert:0;
+  var mwst=au?au.mwst:19;
+  var bereitsNettoRE=0,bereitsBrutto=0,bereitsBezahlt=0;
+  var hatSchluss=false;
+  reList.forEach(function(r){
+    var c=calcRechnung(r);
+    var pos=r.positionen||[];
+    pos.forEach(function(p){if((parseFloat(p.preis)||0)>0)bereitsNettoRE+=(parseFloat(p.menge)||0)*(parseFloat(p.preis)||0);});
+    bereitsBrutto+=c.brutto;
+    bereitsBezahlt+=c.gezahlt;
+    if(r.abschlagTyp==="schluss")hatSchluss=true;
+  });
+  var resteNetto=auftragswert-bereitsNettoRE;
+  return {
+    reList:reList,auftragswert:auftragswert,mwst:mwst,
+    bereitsNettoRE:bereitsNettoRE,bereitsBrutto:bereitsBrutto,
+    bereitsBezahlt:bereitsBezahlt,
+    resteNetto:resteNetto,hatSchluss:hatSchluss,
+    nextAbschlagNr:reList.length+1
+  };
+}
+
+function getStatusBadge(r){
+  var c=calcRechnung(r);
+  if(r.status==="bezahlt"||c.offen<=0.01)return {cls:"bok2",label:"Bezahlt"};
+  if(r.status==="teilweise"&&c.gezahlt>0)return {cls:"binf",label:"Teilw. bezahlt"};
+  return {cls:"bwarn",label:"Offen"};
+}
+
+function getAbschlagLabel(r){
+  if(r.abschlagTyp==="schluss")return '<span class="badge bgr" style="margin-left:4px">Schluss</span>';
+  if(r.abschlagTyp==="abschlag")return '<span class="badge binf" style="margin-left:4px">'+r.abschlagNr+'. Abschlag</span>';
+  return "";
+}
+
+// ── Render Rechnungsliste ─────────────────────────────────────
+function renderRechnungen(){
+  var b=document.getElementById("reb");if(!b)return;
+  var h="";
+  RECHNUNGEN.forEach(function(r){
+    var c=calcRechnung(r);
+    var sb=getStatusBadge(r);
+    h+='<tr class="c" data-nr="'+r.nr+'" data-type="rechnung">';
+    h+='<td><b>'+r.nr+'</b>'+getAbschlagLabel(r)+'</td>';
+    h+='<td>'+r.datum+'</td><td>'+r.faellig+'</td><td>'+r.kunde+'</td>';
+    h+='<td>'+fmtE(c.netto)+'</td><td>'+fmtE(c.brutto)+'</td>';
+    h+='<td>'+(c.offen>0.01?'<span style="color:var(--er);font-weight:500">'+fmtE(c.offen)+'</span>':'<span style="color:var(--ok)">0,00 EUR</span>')+'</td>';
+    h+='<td><span class="badge '+sb.cls+'">'+sb.label+'</span></td>';
+    h+='<td style="white-space:nowrap">';
+    h+='<button class="btn bp bsm" data-nr="'+r.nr+'" onclick="event.stopPropagation();openZahlModal(this.dataset.nr)">Zahlung</button> ';
+    h+='<button class="btn bs bsm" data-nr="'+r.nr+'" onclick="event.stopPropagation();druckPDF(\'rechnung\',this.dataset.nr)">PDF</button> ';
+    h+='<button class="btn bs bsm" data-nr="'+r.nr+'" onclick="event.stopPropagation();openMailModal(this.dataset.nr)">Mail</button>';
+    h+='</td></tr>';
+  });
+  b.innerHTML=h;
+  b.querySelectorAll("tr.c").forEach(function(tr){
+    tr.addEventListener("click",function(){showPanel("rechnung",this.dataset.nr);});
+  });
+  var totalOffen=RECHNUNGEN.reduce(function(s,r){return s+calcRechnung(r).offen;},0);
+  var el=document.getElementById("re-offen-sum");if(el)el.textContent=fmtE(totalOffen);
+}
+
+// ── Rechnung aus Auftrag erstellen — mit Abschlags-Dialog ────
+function openReModal(auNr){
+  var au=auNr?AUFTRAEGE.find(function(x){return x.nr===auNr;}):null;
+
+  if(au){
+    var stand=getAuftragAbrechnungsstand(auNr);
+
+    if(stand.hatSchluss){
+      alert("Auftrag "+auNr+" wurde bereits vollstaendig mit einer Schlussrechnung abgerechnet.\n\nFalls eine Korrektur noetig ist, erstelle bitte manuell eine neue Rechnung.");
+      return;
+    }
+
+    if(stand.reList.length>0){
+      // Es gibt bereits Rechnungen — Dialog zeigen
+      openAbschlagDialog(au,stand);
+      return;
+    }
+  }
+
+  // Erste Rechnung oder manuell
+  openReFormular(au,null,"abschlag",1);
+}
+
+// ── Abschlags-Auswahl-Dialog ──────────────────────────────────
+function openAbschlagDialog(au,stand){
+  document.getElementById("abd-auftrag").textContent=au.nr+" — "+au.leistung;
+  document.getElementById("abd-wert").textContent=fmtE(au.auftragswert);
+  document.getElementById("abd-bereits").textContent=fmtE(stand.bereitsNettoRE);
+  document.getElementById("abd-rest").textContent=fmtE(stand.resteNetto);
+  document.getElementById("abd-bezahlt").textContent=fmtE(stand.bereitsBezahlt);
+
+  // Bisherige Rechnungen auflisten
+  var h="";
+  stand.reList.forEach(function(r){
+    var c=calcRechnung(r);
+    var sb=getStatusBadge(r);
+    var zahlInfo="";
+    if(r.zahlungen&&r.zahlungen.length>0){
+      r.zahlungen.forEach(function(z){zahlInfo+=" | "+z.art+": "+fmtE(z.betrag)+" ("+z.datum+")";});
+    }
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #F5F2EE;font-size:12px">';
+    h+='<div><b>'+r.nr+'</b> '+getAbschlagLabel(r)+'<br><span style="color:var(--sl);font-size:11px">'+r.datum+zahlInfo+'</span></div>';
+    h+='<div style="text-align:right"><div>Netto: '+fmtE(c.netto)+'</div><div>Brutto: '+fmtE(c.brutto)+'</div><span class="badge '+sb.cls+'">'+sb.label+'</span></div>';
+    h+='</div>';
+  });
+  document.getElementById("abd-re-liste").innerHTML=h;
+
+  document.getElementById("abd-auNr").value=au.nr;
+  document.getElementById("abd-nextNr").value=stand.nextAbschlagNr;
+
+  // Schlussrechnung vorberechnen
+  document.getElementById("abd-schluss-rest").textContent=fmtE(stand.resteNetto);
+  document.getElementById("abd-schluss-brutto").textContent=
+    fmtE(stand.resteNetto+stand.resteNetto*au.mwst/100);
+
+  openMdl("abschlag");
+}
+
+function waehlAbschlagTyp(typ){
+  var auNr=document.getElementById("abd-auNr").value;
+  var au=AUFTRAEGE.find(function(x){return x.nr===auNr;});
+  var stand=getAuftragAbrechnungsstand(auNr);
+  closeMdl("abschlag");
+  openReFormular(au,stand,typ,stand.nextAbschlagNr);
+}
+
+// ── Rechnungs-Formular öffnen ─────────────────────────────────
+var rePos=[{bez:"",menge:1,einheit:"Pauschal",preis:0,steuerKey:"s19"}];
+var nxtRE=48;
+
+function openReFormular(au,stand,typ,abschlagNr){
+  var nr="RE-2025-0"+nxtRE;
+  document.getElementById("re-nr").value=nr;
+  document.getElementById("re-au").value=au?au.nr:"";
+  document.getElementById("re-kunde").value=au?au.kunde:"";
+  document.getElementById("re-abschlag-typ").value=typ||"abschlag";
+
+  // Titel automatisch
+  var titel="";
+  if(au){
+    if(typ==="schluss") titel=au.leistung+" — Schlussrechnung";
+    else titel=au.leistung+" — "+abschlagNr+". Abschlag";
+  }
+  document.getElementById("re-lst").value=titel;
+
+  // Positionen vorbelegen
+  rePos=[];
+
+  if(typ==="schluss"&&stand&&stand.reList.length>0){
+    // Gesamtbetrag als erste Position
+    rePos.push({bez:au.leistung+" (Gesamtauftrag)",menge:1,einheit:"Pauschal",preis:au.auftragswert,steuerKey:"s19"});
+    // Jede bezahlte Abschlagsrechnung als Abzugsposition
+    stand.reList.forEach(function(r){
+      var c=calcRechnung(r);
+      var zahlDatum=r.zahlungen.length>0?r.zahlungen[0].datum:"";
+      var bez="abzueglich "+r.abschlagNr+". Abschlag "+r.nr;
+      if(zahlDatum) bez+=" (bezahlt "+zahlDatum+")";
+      rePos.push({bez:bez,menge:1,einheit:"Pauschal",preis:-c.netto,steuerKey:"s19"});
+    });
+  } else if(typ==="abschlag"&&au){
+    // Abschlag: Standardposition mit Prozent-Vorschlag
+    var pct=abschlagNr===1?30:abschlagNr===2?40:30;
+    var betrag=Math.round(au.auftragswert*pct/100*100)/100;
+    rePos.push({bez:abschlagNr+". Abschlag "+pct+"% — "+au.leistung,menge:1,einheit:"Pauschal",preis:betrag,steuerKey:"s19"});
+  } else {
+    rePos=[{bez:"",menge:1,einheit:"Pauschal",preis:0,steuerKey:"s19"}];
+  }
+
+  document.getElementById("re-warn-banner").style.display="none";
+  renderRePos();
+  reCalc();
+  openMdl("rechnung");
+}
+
+function renderRePos(){
+  var b=document.getElementById("re-pos-body");if(!b)return;
+  var h='<tr style="background:var(--bg)"><th style="padding:5px 8px;text-align:left;font-size:11px">Beschreibung</th>';
+  h+='<th style="padding:5px 8px;width:55px;font-size:11px">Menge</th>';
+  h+='<th style="padding:5px 8px;width:65px;font-size:11px">Einh.</th>';
+  h+='<th style="padding:5px 8px;width:90px;text-align:right;font-size:11px">Preis EUR</th>';
+  h+='<th style="padding:5px 8px;width:80px;font-size:11px">Steuer</th>';
+  h+='<th style="padding:5px 8px;width:90px;text-align:right;font-size:11px">Gesamt</th>';
+  h+='<th style="padding:5px 8px;width:24px"></th></tr>';
+  rePos.forEach(function(p,i){
+    var gs=p.menge*p.preis;
+    var istAbzug=p.preis<0;
+    h+='<tr style="'+(istAbzug?"background:#FFF8F0":"")+'"><td style="padding:3px 4px">';
+    h+='<input style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:5px 6px;font-size:12px;'+(istAbzug?"color:var(--er)":"")+'";value="'+p.bez+'" oninput="rePos['+i+'].bez=this.value"></td>';
+    h+='<td style="padding:3px 4px"><input type="number" style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:5px 6px;font-size:12px;text-align:right" value="'+p.menge+'" oninput="rePos['+i+'].menge=parseFloat(this.value)||0;reCalc()"></td>';
+    h+='<td style="padding:3px 4px"><select style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:5px;font-size:12px" onchange="rePos['+i+'].einheit=this.value"><option '+(p.einheit==="Pauschal"?"selected":"")+'>Pauschal</option><option '+(p.einheit==="Std"?"selected":"")+'>Std</option><option '+(p.einheit==="qm"?"selected":"")+'>qm</option><option '+(p.einheit==="Stk"?"selected":"")+'>Stk</option></select></td>';
+    h+='<td style="padding:3px 4px"><input type="number" step="0.01" style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:5px 6px;font-size:12px;text-align:right;'+(istAbzug?"color:var(--er)":"")+'";value="'+p.preis+'" oninput="rePos['+i+'].preis=parseFloat(this.value)||0;reCalc()"></td>';
+    h+='<td style="padding:3px 4px"><select style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:5px;font-size:11px" onchange="rePos['+i+'].steuerKey=this.value;reCalc()">';
+    STEUER_KEYS.filter(function(s){return s.aktiv;}).forEach(function(s){
+      h+='<option value="'+s.id+'" '+(p.steuerKey===s.id?"selected":"")+'>'+s.label+'</option>';
+    });
+    h+='</select></td>';
+    h+='<td style="padding:3px 8px;text-align:right;font-size:12px;font-weight:500;'+(gs<0?"color:var(--er)":"")+'">'+fmtE(gs)+'</td>';
+    h+='<td style="padding:3px 4px;text-align:center"><button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px;padding:2px" onclick="rePos.splice('+i+',1);renderRePos();reCalc()">x</button></td>';
+    h+='</tr>';
+  });
+  b.innerHTML=h;
+}
+
+function addRePos(){
+  rePos.push({bez:"",menge:1,einheit:"Pauschal",preis:0,steuerKey:"s19"});
+  renderRePos();reCalc();
+}
+
+function reCalc(){
+  var totalNetto=rePos.reduce(function(s,p){return s+p.menge*p.preis;},0);
+  var sk=getSteuer("s19");
+  var totalMwst=Math.max(0,totalNetto)*sk.rate/100;
+  var totalBrutto=totalNetto+totalMwst;
+  var elN=document.getElementById("re-netto-anzeige");if(elN)elN.textContent=fmtE(totalNetto);
+  var elM=document.getElementById("re-mwst-anzeige");if(elM)elM.textContent=fmtE(totalMwst);
+  var elB=document.getElementById("re-brutto-anzeige");if(elB)elB.textContent=fmtE(totalBrutto);
+  renderRePos();
+}
+
+function saveRechnung(){
+  var totalNetto=rePos.reduce(function(s,p){return s+p.menge*p.preis;},0);
+  var faellig=new Date();faellig.setDate(faellig.getDate()+14);
+  var typ=document.getElementById("re-abschlag-typ").value;
+  var auNr=document.getElementById("re-au").value;
+  var stand=auNr?getAuftragAbrechnungsstand(auNr):null;
+  var r={
+    nr:document.getElementById("re-nr").value,
+    datum:new Date().toLocaleDateString("de-DE"),
+    faellig:faellig.toLocaleDateString("de-DE"),
+    kunde:document.getElementById("re-kunde").value,
+    leistung:document.getElementById("re-lst").value,
+    positionen:JSON.parse(JSON.stringify(rePos)),
+    netto:totalNetto,steuerKey:"s19",
+    status:"offen",auftragNr:auNr,
+    abschlagTyp:typ,
+    abschlagNr:stand?stand.nextAbschlagNr:1,
+    zahlungen:[],skonto:null
+  };
+  nxtRE++;
+  RECHNUNGEN.unshift(r);
+  if(auNr){
+    var au=AUFTRAEGE.find(function(x){return x.nr===auNr;});
+    if(au){if(!au.rechnungen)au.rechnungen=[];au.rechnungen.push(r.nr);}
+  }
+  rePos=[{bez:"",menge:1,einheit:"Pauschal",preis:0,steuerKey:"s19"}];
+  renderRechnungen();renderAuftraege();
+  closeMdl("rechnung");
+  nt("Rechnung "+r.nr+" erstellt — "+
+    (typ==="schluss"?"Schlussrechnung":r.abschlagNr+". Abschlag"));
+}
+
+// ── Panel: Rechnung Detail ────────────────────────────────────
+function showRechnungPanel(nr){
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});
+  if(!r)return;
+  var c=calcRechnung(r);
+  var sb=getStatusBadge(r);
+  var panel=document.getElementById("panel");
+  var pov=document.getElementById("pov");
+  document.getElementById("panel-title").textContent=r.nr;
+
+  // Abschlags-Uebersicht des Auftrags
+  var auftragBlock="";
+  if(r.auftragNr){
+    var stand=getAuftragAbrechnungsstand(r.auftragNr);
+    var au=AUFTRAEGE.find(function(x){return x.nr===r.auftragNr;});
+    auftragBlock='<div class="div"></div>';
+    auftragBlock+='<div class="ct">Abrechnungsuebersicht Auftrag '+r.auftragNr+'</div>';
+    if(au) auftragBlock+='<div style="font-size:12px;color:var(--sl);margin-bottom:8px">Auftragswert: <b>'+fmtE(au.auftragswert)+'</b> | Bereits berechnet: <b>'+fmtE(stand.bereitsNettoRE)+'</b> | Noch offen: <b>'+fmtE(stand.resteNetto)+'</b></div>';
+    stand.reList.forEach(function(prev){
+      var pc=calcRechnung(prev);
+      var psb=getStatusBadge(prev);
+      var isCurrent=prev.nr===r.nr;
+      auftragBlock+='<div style="padding:7px 10px;border-radius:6px;margin-bottom:4px;font-size:12px;'+(isCurrent?'background:rgba(139,105,20,.08);border:1px solid var(--bl)':'background:var(--bg)border:1px solid var(--bd)')+'\">';
+      auftragBlock+='<div style="display:flex;justify-content:space-between;align-items:center">';
+      auftragBlock+='<div><b>'+prev.nr+'</b> '+getAbschlagLabel(prev)+(isCurrent?' <span style="font-size:10px;color:var(--br)">(diese Rechnung)</span>':'');
+      auftragBlock+='<div style="color:var(--sl);font-size:11px">'+prev.datum+' | Netto: '+fmtE(pc.netto)+' | Brutto: '+fmtE(pc.brutto)+'</div></div>';
+      auftragBlock+='<span class="badge '+psb.cls+'">'+psb.label+'</span></div>';
+      if(prev.zahlungen&&prev.zahlungen.length>0){
+        prev.zahlungen.forEach(function(z){
+          auftragBlock+='<div style="font-size:11px;color:var(--ok);margin-top:3px;padding-left:8px">&#10003; '+z.art+': '+fmtE(z.betrag)+' — '+z.datum+'</div>';
+        });
+      }
+      auftragBlock+='</div>';
+    });
+  }
+
+  var h='<span class="badge '+sb.cls+'" style="margin-bottom:10px;display:inline-block">'+sb.label+'</span>';
+  if(r.abschlagTyp) h+=' '+getAbschlagLabel(r);
+  h+='<div class="ir"><span class="il">Kunde</span><span class="iv">'+r.kunde+'</span></div>';
+  h+='<div class="ir"><span class="il">Leistung</span><span class="iv">'+r.leistung+'</span></div>';
+  h+='<div class="ir"><span class="il">Rechnungsdatum</span><span class="iv">'+r.datum+'</span></div>';
+  h+='<div class="ir"><span class="il">Faellig am</span><span class="iv">'+r.faellig+'</span></div>';
+  h+='<div class="div"></div><div class="ct">Positionen</div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">';
+  r.positionen.forEach(function(p){
+    var gs=p.menge*p.preis;
+    h+='<tr style="border-bottom:1px solid #F5F2EE"><td style="padding:5px 6px;'+(gs<0?"color:var(--er)":"")+'">'+p.bez+'</td><td style="text-align:right;padding:5px 6px;'+(gs<0?"color:var(--er);font-weight:500":"font-weight:500")+'">'+fmtE(gs)+'</td></tr>';
+  });
+  h+='<tr style="background:var(--bg)"><td style="padding:6px;font-weight:600">Netto</td><td style="text-align:right;padding:6px;font-weight:600">'+fmtE(c.netto)+'</td></tr>';
+  h+='<tr><td style="padding:5px 6px;color:var(--sl)">MwSt. '+c.rate+'%</td><td style="text-align:right;padding:5px 6px">'+fmtE(c.mwst)+'</td></tr>';
+  h+='<tr style="background:var(--bg)"><td style="padding:6px;font-weight:600;font-size:14px">Brutto</td><td style="text-align:right;padding:6px;font-weight:700;font-size:14px">'+fmtE(c.brutto)+'</td></tr>';
+  h+='</table>';
+
+  if(r.zahlungen&&r.zahlungen.length>0){
+    h+='<div class="ct" style="margin-top:8px">Zahlungshistorie</div>';
+    r.zahlungen.forEach(function(z){
+      h+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #F5F2EE">';
+      h+='<span style="color:var(--sl)">'+z.datum+'</span><span>'+z.art+'</span>';
+      h+='<span style="font-weight:500;color:'+(z.betrag<0?"var(--er)":"var(--ok)")+'">'+fmtE(z.betrag)+'</span></div>';
+    });
+    h+='<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;font-weight:600">';
+    h+='<span>Noch offen</span><span style="color:'+(c.offen>0.01?"var(--er)":"var(--ok)")+'">'+fmtE(c.offen)+'</span></div>';
+  }
+
+  h+=auftragBlock;
+
+  h+='<div class="div"></div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+  h+='<button class="btn bp bsm" data-nr="'+nr+'" onclick="openZahlModal(this.dataset.nr)">Zahlung verwalten</button>';
+  h+='<button class="btn bs bsm" data-nr="'+nr+'" onclick="druckPDF(\'rechnung\',this.dataset.nr)">PDF herunterladen</button>';
+  h+='<button class="btn bs bsm" data-nr="'+nr+'" onclick="openMailModal(this.dataset.nr)">Per E-Mail senden</button>';
+  h+='</div>';
+
+  document.getElementById("panel-body").innerHTML=h;
+  panel.classList.add("open");pov.classList.add("open");
+}
+
+// ── Auftrag Panel mit Abrechnungshistorie ─────────────────────
+function showAuftragPanel(nr){
+  var au=AUFTRAEGE.find(function(x){return x.nr===nr;});if(!au)return;
+  var stand=getAuftragAbrechnungsstand(nr);
+  var bc=au.status==="abgeschlossen"?"bok2":au.status==="in_arbeit"?"binf":"bwarn";
+  var bl=au.status==="abgeschlossen"?"Abgeschlossen":au.status==="in_arbeit"?"In Arbeit":"Geplant";
+  var panel=document.getElementById("panel");var pov=document.getElementById("pov");
+  document.getElementById("panel-title").textContent=nr;
+
+  var h='<span class="badge '+bc+'" style="margin-bottom:10px;display:inline-block">'+bl+'</span>';
+  h+='<div class="ir"><span class="il">Kunde</span><span class="iv">'+au.kunde+'</span></div>';
+  h+='<div class="ir"><span class="il">Leistung</span><span class="iv">'+au.leistung+'</span></div>';
+  h+='<div class="ir"><span class="il">Auftragswert</span><span class="iv" style="font-size:15px">'+fmtE(au.auftragswert)+'</span></div>';
+  h+='<div class="ir"><span class="il">Mitarbeiter</span><span class="iv">'+(au.ma||'<span style="color:var(--bl)">Nicht zugewiesen</span>')+'</span></div>';
+  h+='<div class="div"></div>';
+
+  // Abrechnungs-Fortschrittsbalken
+  var pct=(au.auftragswert&&au.auftragswert>0)?Math.min(100,Math.round(stand.bereitsNettoRE/au.auftragswert*100)):0;
+  h+='<div class="ct">Abrechnungsstand</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">';
+  h+='<div style="background:var(--bg);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Auftragswert</div><div style="font-size:14px;font-weight:600">'+fmtE(au.auftragswert)+'</div></div>';
+  h+='<div style="background:rgba(29,158,117,.08);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Berechnet</div><div style="font-size:14px;font-weight:600;color:var(--ok)">'+fmtE(stand.bereitsNettoRE)+'</div></div>';
+  h+='<div style="background:rgba(186,117,23,.08);border-radius:6px;padding:8px 10px;text-align:center"><div style="font-size:10px;color:var(--sl);text-transform:uppercase;margin-bottom:3px">Noch offen</div><div style="font-size:14px;font-weight:600;color:var(--br)">'+fmtE(stand.resteNetto)+'</div></div>';
+  h+='</div>';
+  h+='<div style="background:var(--bg);border-radius:4px;height:8px;margin-bottom:14px;overflow:hidden">';
+  h+='<div style="height:100%;width:'+pct+'%;background:var(--ok);transition:width .3s;border-radius:4px"></div></div>';
+  h+='<div style="font-size:11px;color:var(--sl);text-align:right;margin-top:-10px;margin-bottom:12px">'+pct+'% abgerechnet</div>';
+
+  if(stand.reList.length>0){
+    h+='<div class="ct">Rechnungshistorie</div>';
+    stand.reList.forEach(function(r){
+      var c=calcRechnung(r);var sb=getStatusBadge(r);
+      h+='<div style="border:1px solid var(--bd);border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:12px">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+      h+='<div><b>'+r.nr+'</b> '+getAbschlagLabel(r)+'</div>';
+      h+='<span class="badge '+sb.cls+'">'+sb.label+'</span></div>';
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--sl)">';
+      h+='<div>Datum: <b style="color:var(--dk)">'+r.datum+'</b></div>';
+      h+='<div>Netto: <b style="color:var(--dk)">'+fmtE(c.netto)+'</b></div>';
+      h+='<div>Brutto: <b style="color:var(--dk)">'+fmtE(c.brutto)+'</b></div>';
+      h+='<div>Offen: <b style="color:'+(c.offen>0.01?"var(--er)":"var(--ok)")+'">'+fmtE(c.offen)+'</b></div>';
+      h+='</div>';
+      if(r.zahlungen&&r.zahlungen.length>0){
+        r.zahlungen.forEach(function(z){
+          h+='<div style="margin-top:4px;font-size:11px;color:var(--ok);border-top:1px solid #F5F2EE;padding-top:4px">&#10003; '+z.art+': '+fmtE(z.betrag)+' — '+z.datum+'</div>';
+        });
+      }
+      h+='</div>';
+    });
+  }else{
+    h+='<div style="font-size:12px;color:var(--sl);padding:10px 0">Noch keine Rechnungen fuer diesen Auftrag</div>';
+  }
+
+  h+='<div class="div"></div><div style="display:flex;gap:8px;flex-wrap:wrap">';
+  if(!au.ma)h+='<button class="btn bp bsm" data-nr="'+nr+'" onclick="openZuwModal(this.dataset.nr)">Mitarbeiter zuweisen</button>';
+  if(!stand.hatSchluss)h+='<button class="btn bp bsm" data-nr="'+nr+'" onclick="openReModal(this.dataset.nr)">Rechnung erstellen</button>';
+  h+='<button class="btn bs bsm" data-nr="'+nr+'" onclick="druckPDF(\'auftrag\',this.dataset.nr)">Auftrag PDF</button>';
+  h+='</div>';
+
+  document.getElementById("panel-body").innerHTML=h;
+  panel.classList.add("open");pov.classList.add("open");
+}
+
+// ── PDF mit vollstaendiger Abschlags-Uebersicht ───────────────
+function druckPDF(typ,nr){
+  if(typ!=="rechnung"){nt("PDF fuer "+typ+" wird geoeffnet");return;}
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});if(!r){nt("Nicht gefunden");return;}
+  var c=calcRechnung(r);
+  var stand=r.auftragNr?getAuftragAbrechnungsstand(r.auftragNr):null;
+  var au=r.auftragNr?AUFTRAEGE.find(function(x){return x.nr===r.auftragNr;}):null;
+  var w=window.open("","_blank");
+  var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>'+nr+'</title>';
+  html+='<style>body{font-family:Arial,sans-serif;padding:40px;max-width:800px;margin:0 auto;font-size:13px}';
+  html+='.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #8B6914;padding-bottom:20px;margin-bottom:24px}';
+  html+='.firm{font-size:11px;color:#666;line-height:1.8}.doc-type{font-size:28px;font-weight:700;color:#1A1A18}';
+  html+='.meta{font-size:11px;color:#666;text-align:right;line-height:1.8}';
+  html+='table{width:100%;border-collapse:collapse;margin:14px 0}th{background:#F5F0E8;padding:8px;text-align:left;font-size:11px;text-transform:uppercase}';
+  html+='td{padding:8px;border-bottom:1px solid #F0EDE8;font-size:12px}.abzug{color:#E24B4A}.total-box{text-align:right;margin-top:10px}';
+  html+='.tr2{display:flex;justify-content:flex-end;gap:20px;padding:4px 0;font-size:13px}.tr2-final{font-size:16px;font-weight:700;border-top:2px solid #1A1A18;padding-top:8px;margin-top:8px}';
+  html+='.hist-box{margin-top:20px;padding:14px;background:#F9F7F4;border-left:3px solid #C9963A;font-size:11px}';
+  html+='.zahl-box{margin-top:14px;padding:12px;background:#F0FFF8;border:1px solid #9FE1CB;border-radius:4px;font-size:12px}';
+  html+='.footer{margin-top:32px;border-top:1px solid #E5E0D8;padding-top:12px;font-size:10px;color:#999;display:flex;justify-content:space-between}';
+  html+='@media print{button{display:none}}</style></head><body>';
+  html+='<div class="hdr"><div class="firm"><strong style="font-size:15px;color:#1A1A18">TBE Terassen Fix</strong><br>';
+  html+='Musterstrasse 1<br>41061 Moenchengladbach<br>+49 2161 XXXXXX | <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1888f878ea1958384cc958493809292848fcf8584">[email&#160;protected]</a><br>USt-IdNr.: DE XXXXXXXXX</div>';
+  html+='<div><div class="doc-type">'+(r.abschlagTyp==="schluss"?"SCHLUSSRECHNUNG":r.abschlagTyp==="abschlag"?r.abschlagNr+". ABSCHLAGSRECHNUNG":"RECHNUNG")+'</div>';
+  html+='<div class="meta"><strong>Nr.:</strong> '+r.nr+'<br><strong>Datum:</strong> '+r.datum+'<br><strong>Faellig:</strong> '+r.faellig+'</div></div></div>';
+  html+='<div style="margin-bottom:20px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#8B6914;font-weight:600;margin-bottom:6px">Rechnungsempfaenger</div>';
+  html+='<div style="font-size:14px;font-weight:600">'+r.kunde+'</div></div>';
+  if(r.auftragNr)html+='<div style="font-size:11px;color:#666;margin-bottom:16px">Betreff: '+r.leistung+(au?' | Auftragswert gesamt: '+fmtE(au.auftragswert):'')+'</div>';
+  html+='<table><thead><tr><th>Beschreibung</th><th style="text-align:right">Menge</th><th>Einheit</th><th style="text-align:right">Preis</th><th style="text-align:right">Gesamt</th></tr></thead><tbody>';
+  r.positionen.forEach(function(p){
+    var gs=p.menge*p.preis;var istAbzug=gs<0;
+    html+='<tr class="'+(istAbzug?"abzug":"")+'"><td>'+p.bez+'</td><td style="text-align:right">'+p.menge+'</td><td>'+p.einheit+'</td>';
+    html+='<td style="text-align:right">'+Math.abs(p.preis).toFixed(2)+(istAbzug?" (Abzug)":"")+'</td>';
+    html+='<td style="text-align:right;font-weight:500">'+(istAbzug?"-":"")+Math.abs(gs).toFixed(2)+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  html+='<div class="total-box">';
+  html+='<div class="tr2"><span>Nettobetrag:</span><span>'+c.netto.toFixed(2)+' EUR</span></div>';
+  html+='<div class="tr2"><span>MwSt. '+c.rate+'%:</span><span>'+c.mwst.toFixed(2)+' EUR</span></div>';
+  html+='<div class="tr2 tr2-final"><span>Gesamtbetrag:</span><span>'+c.brutto.toFixed(2)+' EUR</span></div></div>';
+
+  // Zahlungshistorie
+  if(r.zahlungen&&r.zahlungen.length>0){
+    html+='<div class="zahl-box"><b>Zahlungshistorie:</b><br>';
+    r.zahlungen.forEach(function(z){html+=z.datum+': '+z.art+' — '+fmtE(z.betrag)+'<br>';});
+    html+='<b>Noch offen: '+fmtE(c.offen)+'</b></div>';
+  }
+
+  // Abschlags-Gesamtuebersicht nur bei Schlussrechnung
+  if(r.abschlagTyp==="schluss"&&stand&&stand.reList.length>1){
+    html+='<div class="hist-box"><b>Gesamtabrechnungsuebersicht Auftrag '+r.auftragNr+'</b><br><br>';
+    html+='<table style="width:100%;font-size:11px"><tr><th>Rechnung</th><th>Typ</th><th style="text-align:right">Betrag</th><th>Zahlung</th><th>Bezahlt am</th></tr>';
+    stand.reList.forEach(function(prev){
+      var pc=calcRechnung(prev);
+      var zahlDatum=prev.zahlungen.length>0?prev.zahlungen[0].datum:"—";
+      var zahlBetrag=prev.zahlungen.length>0?fmtE(prev.zahlungen[0].betrag):"—";
+      html+='<tr><td>'+prev.nr+'</td><td>'+(prev.abschlagNr)+'. '+(prev.abschlagTyp==="schluss"?"Schluss":"Abschlag")+'</td>';
+      html+='<td style="text-align:right">'+fmtE(pc.brutto)+'</td><td>'+zahlBetrag+'</td><td>'+zahlDatum+'</td></tr>';
+    });
+    html+='</table></div>';
+  }
+
+  html+='<div class="footer"><span>TBE Terassen Fix | IBAN: DE XX XXXX XXXX XXXX XXXX XX | BIC: XXXXXXXX</span><span>Seite 1</span></div>';
+  html+='<div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="padding:10px 24px;background:#8B6914;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px">Drucken / Als PDF</button></div>';
+  html+='<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body></html>';
+  w.document.write(html);w.document.close();
+}
+
+// ── Offene Posten Liste ───────────────────────────────────────
+function openOPListe(){
+  var w=window.open("","_blank");
+  var offene=RECHNUNGEN.filter(function(r){return calcRechnung(r).offen>0.01;});
+  var total=offene.reduce(function(s,r){return s+calcRechnung(r).offen;},0);
+  var today=new Date();var todayStr=today.toLocaleDateString("de-DE");
+  var html='<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8"><title>Offene Posten</title>';
+  html+='<style>body{font-family:Arial,sans-serif;padding:40px;max-width:900px;margin:0 auto;font-size:13px}';
+  html+='.hdr{display:flex;justify-content:space-between;border-bottom:2px solid #8B6914;padding-bottom:16px;margin-bottom:20px}';
+  html+='table{width:100%;border-collapse:collapse}th{background:#F5F0E8;padding:8px;text-align:left;font-size:11px;text-transform:uppercase;border-bottom:2px solid #C9963A}';
+  html+='td{padding:8px;border-bottom:1px solid #F0EDE8;font-size:12px}.er{color:#E24B4A;font-weight:600}.warn{color:#BA7517;font-weight:600}';
+  html+='.footer{margin-top:24px;font-size:10px;color:#999;border-top:1px solid #E5E0D8;padding-top:12px;display:flex;justify-content:space-between}';
+  html+='@media print{button{display:none}}</style></head><body>';
+  html+='<div class="hdr"><div><div style="font-size:11px;color:#8B6914;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">TBE Terassen Fix</div>';
+  html+='<div style="font-size:20px;font-weight:700">Offene Posten Liste</div><div style="font-size:12px;color:#666">Stand: '+todayStr+'</div></div>';
+  html+='<div style="text-align:right"><div style="font-size:11px;color:#666">Gesamt offen</div><div style="font-size:28px;font-weight:700;color:#E24B4A">'+fmtE(total)+'</div></div></div>';
+  html+='<table><thead><tr><th>Rechnung</th><th>Typ</th><th>Datum</th><th>Faellig</th><th>Ueberfaellig</th><th>Kunde</th><th>Brutto</th><th>Gezahlt</th><th>Offen</th><th>Status</th></tr></thead><tbody>';
+  offene.forEach(function(r){
+    var c=calcRechnung(r);
+    var faelligDate=new Date(r.faellig.split(".").reverse().join("-"));
+    var tage=Math.floor((today-faelligDate)/(1000*60*60*24));
+    var tageCls=tage>30?"er":tage>0?"warn":"";
+    var sb=getStatusBadge(r);
+    html+='<tr>';
+    html+='<td><b>'+r.nr+'</b></td>';
+    html+='<td>'+(r.abschlagTyp==="schluss"?"Schluss":r.abschlagNr?r.abschlagNr+". Abschlag":"Normal")+'</td>';
+    html+='<td>'+r.datum+'</td><td>'+r.faellig+'</td>';
+    html+='<td class="'+tageCls+'">'+(tage>0?tage+" Tage":"Noch nicht faellig")+'</td>';
+    html+='<td>'+r.kunde+'</td>';
+    html+='<td>'+fmtE(c.brutto)+'</td><td>'+fmtE(c.gezahlt)+'</td>';
+    html+='<td class="er">'+fmtE(c.offen)+'</td><td>'+sb.label+'</td>';
+    html+='</tr>';
+  });
+  html+='<tr style="background:#F5F0E8;font-weight:700"><td colspan="8" style="text-align:right;padding:10px">Gesamt offen:</td><td class="er" style="font-size:14px">'+fmtE(total)+'</td><td></td></tr>';
+  html+='</tbody></table>';
+  html+='<div class="footer"><span>TBE Terassen Fix | Musterstrasse 1 | 41061 Moenchengladbach</span><span>Seite 1</span></div>';
+  html+='<div style="text-align:center;margin-top:20px"><button onclick="window.print()" style="padding:10px 24px;background:#8B6914;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px">Drucken / Als PDF</button></div>';
+  html+='</body></html>';
+  w.document.write(html);w.document.close();
+}
+
+// ── Zahlungs-Modal ────────────────────────────────────────────
+function openZahlModal(nr){
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});if(!r)return;
+  var c=calcRechnung(r);
+  document.getElementById("zahl-nr").value=nr;
+  document.getElementById("zahl-kunde").textContent=r.kunde+" — "+r.nr;
+  document.getElementById("zahl-brutto").textContent=fmtE(c.brutto);
+  document.getElementById("zahl-gezahlt").textContent=fmtE(c.gezahlt);
+  document.getElementById("zahl-offen").textContent=fmtE(c.offen);
+  document.getElementById("zahl-datum").value=new Date().toISOString().split("T")[0];
+  document.getElementById("zahl-betrag").value=c.offen.toFixed(2);
+  document.getElementById("zahl-art").value="vollstaendig";
+  document.getElementById("zahl-skonto-row").style.display="none";
+  document.getElementById("zahl-skonto-type").value="prozent";
+  document.getElementById("zahl-skonto-val").value="";
+  renderZahlHistory(r);zahlCalc();
+  openMdl("zahlung");
+}
+
+function renderZahlHistory(r){
+  var b=document.getElementById("zahl-history");if(!b)return;
+  if(r.zahlungen.length===0){b.innerHTML='<div style="font-size:12px;color:var(--sl);padding:8px 0">Noch keine Zahlungen</div>';return;}
+  var h="";
+  r.zahlungen.forEach(function(z,i){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #F5F2EE;font-size:12px">';
+    h+='<span style="color:var(--sl)">'+z.datum+'</span><span>'+z.art+'</span>';
+    h+='<span style="font-weight:500;color:'+(z.betrag<0?"var(--er)":"var(--ok)")+'">'+fmtE(z.betrag)+'</span>';
+    h+='<button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:13px;padding:0 4px" data-idx="'+i+'" data-nr="'+r.nr+'" onclick="delZahlung(this.dataset.nr,this.dataset.idx)">x</button>';
+    h+='</div>';
+  });
+  b.innerHTML=h;
+}
+
+function zahlArtChange(){
+  var art=document.getElementById("zahl-art").value;
+  document.getElementById("zahl-skonto-row").style.display=(art==="skonto"||art==="teilskonto")?"":"none";
+  zahlCalc();
+}
+
+function zahlCalc(){
+  var nr=document.getElementById("zahl-nr").value;
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});if(!r)return;
+  var c=calcRechnung(r);
+  var art=document.getElementById("zahl-art").value;
+  var betrag=parseFloat(document.getElementById("zahl-betrag").value)||0;
+  var skontoBetrag=0;
+  if(art==="skonto"||art==="teilskonto"){
+    var skType=document.getElementById("zahl-skonto-type").value;
+    var skVal=parseFloat(document.getElementById("zahl-skonto-val").value)||0;
+    skontoBetrag=(skType==="prozent")?c.brutto*skVal/100:skVal;
+    var elSk=document.getElementById("zahl-skonto-betrag");if(elSk)elSk.textContent=fmtE(skontoBetrag);
+  }
+  var neuOffen=Math.max(0,c.offen-betrag-skontoBetrag);
+  var elN=document.getElementById("zahl-neu-offen");if(elN)elN.textContent=fmtE(neuOffen);
+  var elS=document.getElementById("zahl-status-preview");
+  if(elS){
+    if(neuOffen<=0.01)elS.textContent="Vollstaendig bezahlt";
+    else if(betrag>0)elS.textContent="Teilweise bezahlt — "+fmtE(neuOffen)+" offen";
+    else elS.textContent="Unveraendert";
+  }
+}
+
+function saveZahlung(){
+  var nr=document.getElementById("zahl-nr").value;
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});if(!r)return;
+  var c=calcRechnung(r);
+  var art=document.getElementById("zahl-art").value;
+  var datum=document.getElementById("zahl-datum").value.split("-").reverse().join(".");
+  var betrag=parseFloat(document.getElementById("zahl-betrag").value)||0;
+  var artLabel={vollstaendig:"Vollstaendig bezahlt",teilweise:"Teilzahlung",skonto:"Zahlung mit Skonto",teilskonto:"Teilzahlung mit Skonto",rueckerstattung:"Rueckerstattung",offen:"Zurueck auf Offen"}[art]||art;
+  if(art==="offen"){r.zahlungen=[];r.status="offen";renderRechnungen();closeMdl("zahlung");nt("Rechnung "+nr+" zurueck auf Offen");return;}
+  if(betrag>0)r.zahlungen.push({datum:datum,betrag:betrag,art:artLabel});
+  if(art==="skonto"||art==="teilskonto"){
+    var skType=document.getElementById("zahl-skonto-type").value;
+    var skVal=parseFloat(document.getElementById("zahl-skonto-val").value)||0;
+    var skB=(skType==="prozent")?c.brutto*skVal/100:skVal;
+    if(skB>0)r.zahlungen.push({datum:datum,betrag:-skB,art:"Skonto "+(skType==="prozent"?skVal+"%":fmtE(skB))});
+  }
+  var newC=calcRechnung(r);
+  r.status=newC.offen<=0.01?"bezahlt":r.zahlungen.length>0?"teilweise":"offen";
+  renderRechnungen();closeMdl("zahlung");nt("Zahlung gespeichert — "+fmtE(newC.offen)+" offen");
+}
+
+function delZahlung(nr,idx){
+  var r=RECHNUNGEN.find(function(x){return x.nr===nr;});if(!r)return;
+  r.zahlungen.splice(parseInt(idx),1);
+  var c=calcRechnung(r);
+  r.status=c.offen<=0.01?"bezahlt":r.zahlungen.length>0?"teilweise":"offen";
+  renderZahlHistory(r);renderRechnungen();openZahlModal(nr);
+}
+
+function markBezahlt(nr){openZahlModal(nr);}
+
+
+
+// ═══════════════════════════════════════════════════════
+// STEUERSCHLUESSEL VERWALTUNG (Stammdaten)
+// ═══════════════════════════════════════════════════════
+function renderSteuerKeys() {
+  var b = document.getElementById("steuer-body"); if(!b) return;
+  var h = "";
+  STEUER_KEYS.forEach(function(s,i){
+    h += '<tr>';
+    h += '<td><input style="width:60px;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px" value="'+s.label+'" oninput="STEUER_KEYS['+i+'].label=this.value"></td>';
+    h += '<td><input type="number" style="width:55px;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px;text-align:right" value="'+s.rate+'" oninput="STEUER_KEYS['+i+'].rate=parseFloat(this.value)||0"></td>';
+    h += '<td style="min-width:220px"><input style="width:100%;border:1px solid var(--bd);border-radius:4px;padding:4px 6px;font-size:12px" value="'+s.text+'" oninput="STEUER_KEYS['+i+'].text=this.value" title="Dieser Text erscheint auf der Rechnung"></td>';
+    h += '<td style="text-align:center"><input type="checkbox" '+(s.aktiv?"checked":"")+'  onchange="STEUER_KEYS['+i+'].aktiv=this.checked"></td>';
+    h += '<td><button style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px" onclick="STEUER_KEYS.splice('+i+',1);renderSteuerKeys()">x</button></td>';
+    h += '</tr>';
+  });
+  b.innerHTML = h;
+}
+
+function addSteuerKey() {
+  STEUER_KEYS.push({id:"s"+Date.now(),rate:0,label:"Neu",text:"Steuerbeschreibung",aktiv:true});
+  renderSteuerKeys();
+}
+
+
+
+// Panel-Weiterleitung fuer Rechnung und Auftrag
+var _origShowPanel = showPanel;
+function showPanel(type, id) {
+  if(type === "rechnung") { showRechnungPanel(id); return; }
+  if(type === "auftrag")  { showAuftragPanel(id); return; }
+  _origShowPanel(type, id);
+}
+
+
+
+
+
+// ═══════════════════════════════════════════════════════
+// MANDANTEN-SYSTEM
+// ═══════════════════════════════════════════════════════
+var MANDANTEN = {
+  test: {
+    id: "test",
+    name: "TBE Terassen Fix — TESTMANDANT",
+    label: "Test",
+    color: "#BA7517",
+    beschreibung: "Testdaten zum Ausprobieren. Keine echten Daten.",
+    firma: {name:"TBE Terassen Fix",str:"Musterstrasse 1",plz:"41061",ort:"Moenchengladbach",
+            tel:"+49 2161 999999",em:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="74001107003400161159001106150707111a5a1011">[email&#160;protected]</a>",ust:"DE000000000",
+            iban:"DE00 0000 0000 0000 0000 00",berater:"12345",mandant:"99999"}
+  },
+  live: {
+    id: "live",
+    name: "TBE Terassen Fix",
+    label: "Live",
+    color: "#1D9E75",
+    beschreibung: "Echtbetrieb. Alle Daten sind real und verbindlich.",
+    firma: {name:"TBE Terassen Fix",str:"",plz:"",ort:"",
+            tel:"",em:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ddb4b3bbb29da9bfb8f0a9b8afbcaeaeb8b3f3b9b8">[email&#160;protected]</a>",ust:"",
+            iban:"",berater:"",mandant:""}
+  }
+};
+
+var AKTIVER_MANDANT = null;
+
+// Test-Datensatz
+var TESTDATEN = {
+  kunden: [
+    {nr:"K-2025-001",vn:"Hans",nn:"Mueller",fi:"",str:"Hauptstrasse 5",plz:"41061",ort:"Moenchengladbach",tel:"+49 2161 111222",em:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="25485040494940576548444c490b4140">[email&#160;protected]</a>",em2:"",nl:true,deb:"10001",kred:"",status:"aktiv"},
+    {nr:"K-2025-002",vn:"",nn:"Schmidt GmbH",fi:"Schmidt GmbH",str:"Industriestr. 12",plz:"47798",ort:"Krefeld",tel:"+49 2151 223344",em:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="335a5d555c7340505b5e5a57471e545e515b1d5756">[email&#160;protected]</a>",em2:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="492b3c2a212128253d3c272e093a2a2124202d3d642e242b21672d2c">[email&#160;protected]</a>",nl:false,deb:"10002",kred:"70002",status:"aktiv"},
+    {nr:"K-2025-003",vn:"Klaus",nn:"Weber",fi:"",str:"Gartenweg 3",plz:"41063",ort:"Moenchengladbach",tel:"+49 170 3344556",em:"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7c17520b191e190e3c1b111d1510521f1311">[email&#160;protected]</a>",em2:"",nl:true,deb:"10003",kred:"",status:"aktiv"}
+  ],
+  angebote: [
+    {nr:"AN-2025-031",datum:"18.04.2025",kunde:"Bauer und Soehne",leistung:"Glasdach Massanfertigung",netto:2900,mwst:19,status:"angenommen",positionen:[{bez:"Glasdach 5x4m",menge:1,einheit:"Pauschal",preis:2900,steuerKey:"s19"}]},
+    {nr:"AN-2025-032",datum:"22.04.2025",kunde:"Schulz, Marie",leistung:"Massanfertigung Metall",netto:1840,mwst:19,status:"offen",positionen:[{bez:"Stahlkonstruktion",menge:1,einheit:"Pauschal",preis:1840,steuerKey:"s19"}]}
+  ],
+  auftraege: [
+    {nr:"AU-2025-047",datum:"28.04.2025",kunde:"Meyer Immobilien",leistung:"Fensterbau 6 Einheiten",ma:"Thomas Mueller",auftragswert:3200,mwst:19,status:"abgeschlossen",angebotNr:"",rechnungen:["RE-2025-047"]},
+    {nr:"AU-2025-046",datum:"26.04.2025",kunde:"Hoffmann, Peter",leistung:"Wintergarten Bau",ma:"Stefan Klein",auftragswert:8500,mwst:19,status:"in_arbeit",angebotNr:"",rechnungen:["RE-2025-046"]},
+    {nr:"AU-2025-044",datum:"18.04.2025",kunde:"Fischer, Anna",leistung:"Terrassenueberdachung",ma:"Marco Schulz",auftragswert:4200,mwst:19,status:"abgeschlossen",angebotNr:"",rechnungen:["RE-2025-044a","RE-2025-044b","RE-2025-044"]}
+  ],
+  rechnungen: [
+    {nr:"RE-2025-047",datum:"28.04.2025",faellig:"12.05.2025",kunde:"Meyer Immobilien",leistung:"Fensterbau",auftragNr:"AU-2025-047",abschlagTyp:"schluss",abschlagNr:1,positionen:[{bez:"Fensterbau 6 Einheiten",menge:1,einheit:"Pauschal",preis:1920,steuerKey:"s19"}],netto:1920,steuerKey:"s19",status:"offen",zahlungen:[],skonto:null},
+    {nr:"RE-2025-046",datum:"22.04.2025",faellig:"06.05.2025",kunde:"Hoffmann, Peter",leistung:"Wintergarten 1. Abschlag",auftragNr:"AU-2025-046",abschlagTyp:"abschlag",abschlagNr:1,positionen:[{bez:"Wintergarten 1. Abschlag 40%",menge:1,einheit:"Pauschal",preis:3400,steuerKey:"s19"}],netto:3400,steuerKey:"s19",status:"bezahlt",zahlungen:[{datum:"01.05.2025",betrag:4046,art:"Vollstaendig bezahlt"}],skonto:null},
+    {nr:"RE-2025-044a",datum:"05.04.2025",faellig:"19.04.2025",kunde:"Fischer, Anna",leistung:"Terrassenueberdachung 1. Abschlag",auftragNr:"AU-2025-044",abschlagTyp:"abschlag",abschlagNr:1,positionen:[{bez:"1. Abschlag 30%",menge:1,einheit:"Pauschal",preis:1260,steuerKey:"s19"}],netto:1260,steuerKey:"s19",status:"bezahlt",zahlungen:[{datum:"17.04.2025",betrag:1499.40,art:"Vollstaendig bezahlt"}],skonto:null},
+    {nr:"RE-2025-044b",datum:"14.04.2025",faellig:"28.04.2025",kunde:"Fischer, Anna",leistung:"Terrassenueberdachung 2. Abschlag",auftragNr:"AU-2025-044",abschlagTyp:"abschlag",abschlagNr:2,positionen:[{bez:"2. Abschlag 40%",menge:1,einheit:"Pauschal",preis:1680,steuerKey:"s19"}],netto:1680,steuerKey:"s19",status:"bezahlt",zahlungen:[{datum:"26.04.2025",betrag:1999.20,art:"Vollstaendig bezahlt"}],skonto:null},
+    {nr:"RE-2025-044",datum:"22.04.2025",faellig:"06.05.2025",kunde:"Fischer, Anna",leistung:"Terrassenueberdachung Schlussrechnung",auftragNr:"AU-2025-044",abschlagTyp:"schluss",abschlagNr:3,positionen:[{bez:"Terrassenueberdachung gesamt",menge:1,einheit:"Pauschal",preis:4200,steuerKey:"s19"},{bez:"abzueglich 1. Abschlag RE-2025-044a (bezahlt 17.04.2025)",menge:1,einheit:"Pauschal",preis:-1260,steuerKey:"s19"},{bez:"abzueglich 2. Abschlag RE-2025-044b (bezahlt 26.04.2025)",menge:1,einheit:"Pauschal",preis:-1680,steuerKey:"s19"}],netto:1260,steuerKey:"s19",status:"bezahlt",zahlungen:[{datum:"04.05.2025",betrag:1499.40,art:"Vollstaendig bezahlt"}],skonto:null}
+  ]
+};
+
+// Live-Datensatz (leer)
+var LIVE_DATEN = {
+  kunden:[], angebote:[], auftraege:[], rechnungen:[]
+};
+
+// Aktive Datensätze (werden je nach Mandant gesetzt)
+// Diese werden von allen anderen Funktionen genutzt
+function setMandant(id) {
+  AKTIVER_MANDANT = id;
+  var daten = (id === "test") ? TESTDATEN : LIVE_DATEN;
+
+  // Daten aus localStorage laden wenn vorhanden
+  try {
+    var savedRaw = id === "live" ? null : localStorage.getItem("tbe_data_"+id);
+    var saved = savedRaw ? JSON.parse(savedRaw) : null;
+    // Validiere Struktur
+    if(saved) {
+      if(!Array.isArray(saved.kunden)) saved.kunden=[];
+      if(!Array.isArray(saved.angebote)) saved.angebote=[];
+      if(!Array.isArray(saved.auftraege)) saved.auftraege=[];
+      if(!Array.isArray(saved.rechnungen)) saved.rechnungen=[];
+      saved.rechnungen.forEach(function(r){
+        if(!Array.isArray(r.positionen)) r.positionen=[];
+        if(!Array.isArray(r.zahlungen)) r.zahlungen=[];
+        if(r.netto===undefined) r.netto=0;
+      });
+      saved.auftraege.forEach(function(a){
+        if(a.auftragswert===undefined) a.auftragswert=parseFloat(a.netto)||0;
+        if(!Array.isArray(a.rechnungen)) a.rechnungen=[];
+      });
+      daten = saved;
+    } else {
+      // Erste Nutzung: Defaults speichern
+      if(id === "test") {
+        localStorage.setItem("tbe_data_"+id, JSON.stringify(TESTDATEN));
+      } else {
+        localStorage.setItem("tbe_data_"+id, JSON.stringify(LIVE_DATEN));
+      }
+    }
+  } catch(e) {}
+
+  KD = daten.kunden || [];
+  ANGEBOTE = daten.angebote || [];
+  AUFTRAEGE = daten.auftraege || [];
+  RECHNUNGEN = daten.rechnungen || [];
+
+  // Nummern-Zähler anpassen
+  nxtK = KD.length > 0 ? (parseInt(KD[0].nr.split("-")[2]||"0")+1) : (id==="live"?1:6);
+  nxtAN = ANGEBOTE.length > 0 ? (parseInt(ANGEBOTE[0].nr.split("-")[2]||"33")+1) : (id==="live"?1:34);
+  nxtAU = AUFTRAEGE.length > 0 ? (parseInt(AUFTRAEGE[0].nr.split("-")[2]||"47")+1) : (id==="live"?1:48);
+  nxtRE = RECHNUNGEN.length > 0 ? (parseInt(RECHNUNGEN[0].nr.split("-")[2]||"47")+1) : (id==="live"?1:48);
+
+  // Firmen-Daten laden
+  var m = MANDANTEN[id];
+  try {
+    var firma = JSON.parse(localStorage.getItem("tbe_firma_"+id) || JSON.stringify(m.firma));
+    ["fn","frf","fhrb","fstr","fplz","fort","ftel","fem","fust","fiban","fber","fman","fskl","fstb","fstbn","fwj"].forEach(function(fid){
+      var el = document.getElementById(fid);
+      if(el && firma[fid]) el.value = firma[fid];
+    });
+  } catch(e) {}
+
+  // Banner aktualisieren
+  updateMandantBanner();
+
+  // Alle Views neu rendern
+  renderK(KD);
+  renderAngebote();
+  renderAuftraege();
+  renderRechnungen();
+  renderSteuerKeys();
+  setTimeout(renderNotifs,100);
+
+  localStorage.setItem("tbe_last_mandant", id);
+}
+
+function saveDaten() {
+  if(!AKTIVER_MANDANT) return;
+  try {
+    localStorage.setItem("tbe_data_"+AKTIVER_MANDANT, JSON.stringify({
+      kunden: KD,
+      angebote: ANGEBOTE,
+      auftraege: AUFTRAEGE,
+      rechnungen: RECHNUNGEN
+    }));
+  } catch(e) { console.warn("Speichern fehlgeschlagen:", e); }
+}
+
+function updateMandantBanner() {
+  if(!AKTIVER_MANDANT) return;
+  var m = MANDANTEN[AKTIVER_MANDANT];
+  var isTest = AKTIVER_MANDANT === "test";
+  var color = isTest ? "#BA7517" : "#1D9E75";
+  var dot = document.getElementById("mandant-dot");
+  var lbl = document.getElementById("mandant-footer-label");
+  var nm  = document.getElementById("mandant-footer-name");
+  if(dot) dot.style.background = color;
+  if(lbl) { lbl.textContent = isTest ? "TEST-MODUS" : "LIVE-MODUS"; lbl.style.color = color; }
+  if(nm)  nm.textContent = m.name;
+}
+
+function openMandantWahl() {
+  openMdl("mandant");
+}
+
+function waehltMandant(id) {
+  closeMdl("mandant");
+  setMandant(id);
+  goTo("dashboard", document.getElementById("ni-dashboard"));
+  nt((id==="test"?"Test":"Live")+"-Mandant aktiviert");
+}
+
+// Patch: saveFirma auch für Mandant speichern
+var _origSaveFirma = (typeof saveFirma !== "undefined") ? saveFirma : null;
+function saveFirma() {
+  var ids = ["fn","frf","fhrb","fstr","fplz","fort","ftel","fem","fust","fiban","fber","fman","fskl","fstb","fstbn","fwj"];
+  var data = {};
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) data[id]=el.value; });
+  try {
+    localStorage.setItem("tbe_f", JSON.stringify(data));
+    if(AKTIVER_MANDANT) {
+      localStorage.setItem("tbe_firma_"+AKTIVER_MANDANT, JSON.stringify(data));
+    }
+  } catch(e){}
+  nt("Firmendaten gespeichert");
+}
+
+// Patch: Daten nach jeder Änderung speichern
+var _origSaveKunde = saveKunde;
+function saveKunde() {
+  _origSaveKunde();
+  saveDaten();
+}
+var _origSaveRechnung = saveRechnung;
+function saveRechnung() {
+  _origSaveRechnung();
+  saveDaten();
+}
+var _origSaveAuftrag = saveAuftrag;
+function saveAuftrag() {
+  _origSaveAuftrag();
+  saveDaten();
+}
+var _origSaveZahlung = saveZahlung;
+function saveZahlung() {
+  _origSaveZahlung();
+  saveDaten();
+}
+
+
+function resetMandant(id) {
+  var label = id === "live" ? "Live-Mandant" : "Test-Mandant";
+  if(!confirm("Alle Daten des "+label+" wirklich löschen?\n\nDieser Vorgang kann nicht rückgängig gemacht werden.")) return;
+  try {
+    localStorage.removeItem("tbe_data_"+id);
+    localStorage.removeItem("tbe_firma_"+id);
+    if(AKTIVER_MANDANT === id) {
+      setMandant(id);
+      nt(label+" wurde zurückgesetzt");
+    } else {
+      nt(label+" wurde zurückgesetzt");
+    }
+  } catch(e) { nt("Fehler beim Zurücksetzen"); }
+}
+
+function clearLiveNow() {
+  // Löscht Live-Daten aus localStorage sofort
+  try {
+    localStorage.removeItem("tbe_data_live");
+    localStorage.removeItem("tbe_firma_live");
+    nt("Live-Mandant wurde geleert — Daten werden neu gestartet");
+    if(AKTIVER_MANDANT === "live") setMandant("live");
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// INITIALISIERUNG - immer zuletzt!
+// ═══════════════════════════════════════════════════════
+(function() {
+  // Live-Mandant immer mit sauberen Daten starten (nie Testdaten)
+  try {
+    var liveRaw = localStorage.getItem("tbe_data_live");
+    if(liveRaw) {
+      var liveData = JSON.parse(liveRaw);
+      // Prüfe ob es Testdaten sind (Testdaten haben RE-2025-04x Nummern)
+      var rechnungen = liveData.rechnungen || [];
+      var hasTestData = rechnungen.some(function(r){
+        return r && r.nr && (r.nr.indexOf("RE-2025-04") === 0 || r.nr.indexOf("RE-2025-047") === 0);
+      });
+      if(hasTestData) {
+        localStorage.removeItem("tbe_data_live");
+        console.log("Live-Mandant: Testdaten erkannt und gelöscht");
+      }
+    }
+  } catch(e) {}
+  // Steuerschluessel-Select befuellen
+  var sel = document.getElementById("re-steuer");
+  if(sel) {
+    sel.innerHTML = "";
+    STEUER_KEYS.filter(function(s){return s.aktiv;}).forEach(function(s){
+      sel.innerHTML += '<option value="'+s.id+'">'+s.label+'</option>';
+    });
+  }
+  // Letzten Mandant laden oder Auswahl zeigen
+  var last = localStorage.getItem("tbe_last_mandant");
+  if(last && MANDANTEN[last]) {
+    setMandant(last);
+  } else {
+    // Erst rendern dann Modal zeigen
+    renderK(KD);
+    renderAngebote();
+    renderAuftraege();
+    renderRechnungen();
+    renderSteuerKeys();
+    setTimeout(function(){ openMdl("mandant"); }, 150);
+  }
+})();
+
+
+
+function renderNotifs() {
+  if(!AKTIVER_MANDANT) return;
+  try {
+    var notifs = JSON.parse(localStorage.getItem("tbe_notif_"+AKTIVER_MANDANT)||"[]");
+    var unread = notifs.filter(function(n){return !n.gelesen;});
+    var badge = document.getElementById("notif-badge");
+    var list = document.getElementById("notif-list");
+    if(!badge||!list) return;
+    badge.textContent = unread.length;
+    badge.style.display = unread.length > 0 ? "inline" : "none";
+    if(notifs.length === 0) {
+      list.innerHTML = '<div style="color:var(--sl);font-size:12px;padding:8px 0">Keine Meldungen von Handwerkern</div>';
+      return;
+    }
+    var h = "";
+    notifs.slice(0,8).forEach(function(n){
+      h += '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);'+(n.gelesen?"opacity:.55":"")+'">';
+      h += '<div style="width:8px;height:8px;border-radius:50%;background:'+(n.gelesen?"var(--bd)":"var(--ok)")+';flex-shrink:0;margin-top:5px"></div>';
+      h += '<div style="flex:1">';
+      h += '<div style="font-size:13px;font-weight:'+(n.gelesen?"400":"600")+'">'+n.kunde+' — '+n.auftragNr+'</div>';
+      h += '<div style="font-size:12px;color:var(--sl)">'+n.ma+' | '+n.datum+' '+n.einzeit+' – '+n.auszeit+' ('+n.dauer+')</div>';
+      h += '<div style="font-size:11px;color:var(--sl);margin-top:2px">';
+      if(n.fotos) h += n.fotos+' Fotos &nbsp;';
+      if(n.sig) h += '&#10003; Unterschrift &nbsp;';
+      if(n.gps_ein) h += '&#128205; GPS &nbsp;';
+      h += '</div></div>';
+      h += '<button class="btn bs bsm" data-nid="'+n.id+'" onclick="markNotifGelesen(this.dataset.nid)">Gelesen</button>';
+      h += '</div>';
+    });
+    list.innerHTML = h;
+  } catch(e) { console.warn("renderNotifs Fehler:", e); }
+}
+
+function markNotifGelesen(id) {
+  if(!AKTIVER_MANDANT) return;
+  try {
+    var key = "tbe_notif_"+AKTIVER_MANDANT;
+    var notifs = JSON.parse(localStorage.getItem(key)||"[]");
+    notifs.forEach(function(n){ if(n.id===id) n.gelesen=true; });
+    localStorage.setItem(key, JSON.stringify(notifs));
+    renderNotifs();
+  } catch(e) {}
+}
+
+</script>abel+'</option>';
+    });
+  }
+  // Letzten Mandant laden oder Auswahl zeigen
+  var last = localStorage.getItem("tbe_last_mandant");
+  if(last && MANDANTEN[last]) {
+    setMandant(last);
+  } else {
+    // Erst rendern dann Modal zeigen
+    renderK(KD);
+    renderAngebote();
+    renderAuftraege();
+    renderRechnungen();
+    renderSteuerKeys();
+    setTimeout(function(){ openMdl("mandant"); }, 150);
+  }
+})();
+
+
+</script>
+
+
+
+<div class="mbg" id="mdl-mandant" style="background:rgba(0,0,0,.7)">
+<div style="width:540px;max-width:92vw;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+<div style="background:var(--dk);padding:22px 28px;display:flex;align-items:center;justify-content:space-between">
+<div><img src="data:image/png;base64,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" style="height:36px;filter:brightness(0) invert(1);opacity:.88;display:block;margin-bottom:7px">
+<div style="font-size:11px;color:rgba(255,255,255,.4)">Admin-Portal — Mandantenauswahl</div></div>
+<div style="font-size:11px;color:rgba(255,255,255,.28);text-align:right;line-height:1.8">Bitte waehlen Sie<br>Ihre Arbeitsumgebung</div>
+</div>
+<div style="padding:22px 28px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+<div onclick="waehltMandant('test')" style="border:2px solid #BA7517;border-radius:10px;padding:18px;cursor:pointer;background:rgba(186,117,23,.04);transition:all .15s" onmouseover="this.style.background='rgba(186,117,23,.1)'" onmouseout="this.style.background='rgba(186,117,23,.04)'">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="width:10px;height:10px;border-radius:50%;background:#BA7517;flex-shrink:0"></div><b style="font-size:13px;color:#633806">TEST-MANDANT</b></div>
+<div style="font-size:12px;color:#6B7F89;line-height:1.7;margin-bottom:10px">Vorgefertigte Beispieldaten.<br>Alle Funktionen ausprobieren.<br>Keine echten Geschaeftsdaten.</div>
+<div style="font-size:10px;padding:3px 8px;background:rgba(186,117,23,.15);border-radius:4px;color:#633806;display:inline-block">Kunden, Auftraege &amp; Rechnungen vorhanden</div>
+</div>
+<div onclick="waehltMandant('live')" style="border:2px solid #1D9E75;bord
