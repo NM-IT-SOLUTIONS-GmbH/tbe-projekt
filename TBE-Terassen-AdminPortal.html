@@ -137,17 +137,10 @@ body{font-family:sans-serif;background:var(--bg);color:var(--dk);min-height:100v
     <div class="sb-mandant-action">&#8646;</div>
   </button>
 </div>
-<div id="pb-status" style="padding:5px 12px;font-size:10px;border-top:1px solid rgba(255,255,255,.08)"><span style="color:rgba(255,255,255,.3)">&#9679; Verbinde...</span></div>
 </div>
 <div class="main">
 <div class="pg active" id="pg-dashboard">
-<div id="pb-login-banner" style="display:none;background:rgba(139,105,20,.08);border:1px solid #C9963A;border-radius:8px;padding:12px 16px;margin-bottom:16px">
-<div style="font-size:13px;font-weight:600;color:#8B6914;margin-bottom:6px">Datenbank verbinden — pb.tbe-terassen.de</div>
-<div style="display:flex;gap:8px;align-items:center">
-<input type="password" id="pb-pw-inline" placeholder="PocketBase Passwort" style="flex:1;border:1px solid var(--bd);border-radius:6px;padding:7px 10px;font-size:13px;font-family:sans-serif" onkeydown="if(event.key==='Enter')doPBLoginInline()">
-<button class="btn bp bsm" onclick="doPBLoginInline()">Verbinden</button>
-<button class="btn bs bsm" onclick="document.getElementById('pb-login-banner').style.display='none'">Offline</button>
-</div></div>
+<div id="pb-login-banner" style="display:none;background:rgba(139,105,20,.08);border:1px solid #C9963A;border-radius:8px;padding:12px 16px;margin-bottom:16px"><div style="font-size:13px;font-weight:600;color:#8B6914;margin-bottom:6px">Datenbank verbinden — pb.tbe-terassen.de</div><div style="display:flex;gap:8px;align-items:center"><input type="password" id="pb-pw-inline" placeholder="PocketBase Passwort" style="flex:1;border:1px solid #E5E0D8;border-radius:6px;padding:7px 10px;font-size:13px;font-family:sans-serif"><button onclick="doPBLoginInline()" style="padding:7px 14px;background:#8B6914;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">Verbinden</button><button onclick="document.getElementById('pb-login-banner').style.display='none'" style="padding:7px 10px;background:#E5E0D8;border:none;border-radius:6px;cursor:pointer;font-size:13px">Offline</button></div></div>
 
 <div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Uebersicht April 2025</div></div></div>
 <div class="sr">
@@ -156,7 +149,6 @@ body{font-family:sans-serif;background:var(--bg);color:var(--dk);min-height:100v
 <div class="sc"><div class="sl2">Offene Rechnungen</div><div class="sv">21.919 EUR</div></div>
 <div class="sc"><div class="sl2">Kunden gesamt</div><div class="sv">38</div></div>
 </div>
-<div class="card" id="notif-card"><div class="ct" style="display:flex;justify-content:space-between;align-items:center"><span>Handwerker-Meldungen</span><span id="notif-badge" style="background:var(--er);color:#fff;border-radius:99px;padding:1px 8px;font-size:10px;font-weight:600;display:none">0</span></div><div id="notif-list"><div style="color:var(--sl);font-size:12px;padding:8px 0">Keine Meldungen</div></div></div>
 <div class="card"><div class="ct">Letzte Aktivitaeten</div>
 <div class="tl">
 <div class="tli d"><div class="td">Heute 09:14</div><div><div class="tt">Auftrag AU-2025-047 abgeschlossen</div><div class="ts2">Handwerker: Thomas M.</div></div></div>
@@ -506,7 +498,336 @@ body{font-family:sans-serif;background:var(--bg);color:var(--dk);min-height:100v
 <div style="border:2px solid var(--br);border-radius:8px;padding:14px;cursor:pointer;background:rgba(139,105,20,.04);transition:all .15s" onclick="waehlAbschlagTyp('schluss')" onmouseover="this.style.borderColor='var(--bl)'" onmouseout="this.style.borderColor='var(--br)'">
 <div style="font-size:14px;font-weight:600;margin-bottom:4px">Schlussrechnung</div>
 <div style="font-size:12px;color:var(--sl)">Restbetrag: <span id="abd-schluss-rest" style="font-weight:600;color:var(--br)"></span></div>
-<div style="font-size:11px;color:var(--sl)">Brutto: <span id="abd-schluss-bru<script>
+<div style="font-size:11px;color:var(--sl)">Brutto: <span id="abd-schluss-brutto"></span></div>
+<div style="font-size:11px;color:var(--sl);margin-top:4px">Abschlage werden automatisch abgezogen</div>
+</div>
+</div>
+<input type="hidden" id="abd-auNr">
+<input type="hidden" id="abd-nextNr">
+<div style="display:flex;justify-content:flex-end">
+<button class="btn bs" onclick="closeMdl('abschlag')">Abbrechen</button>
+</div>
+</div></div>
+
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+<script>
+// ═══════════════════════════════════════════════════════
+// POCKETBASE API LAYER
+// Verbindet Admin-Portal mit PocketBase auf dem VPS
+// ═══════════════════════════════════════════════════════
+
+var PB_URL = "https://pb.tbe-terassen.de";
+var PB_TOKEN = null;
+var PB_ADMIN_EMAIL = "admin@tbe-terassen.de";
+
+// ── Auth ─────────────────────────────────────────────
+async function pbLogin(password) {
+  try {
+    var r = await fetch(PB_URL+"/api/admins/auth-with-password", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({identity: PB_ADMIN_EMAIL, password: password})
+    });
+    var d = await r.json();
+    if(d.token) {
+      PB_TOKEN = d.token;
+      localStorage.setItem("pb_token", d.token);
+      localStorage.setItem("pb_token_time", Date.now().toString());
+      return true;
+    }
+    return false;
+  } catch(e) { console.warn("PB Login Fehler:", e); return false; }
+}
+
+function pbHeaders() {
+  return {
+    "Content-Type": "application/json",
+    "Authorization": PB_TOKEN || ""
+  };
+}
+
+// Token aus localStorage wiederherstellen
+(function() {
+  var t = localStorage.getItem("pb_token");
+  var ttime = parseInt(localStorage.getItem("pb_token_time") || "0");
+  // Token 7 Tage gültig
+  if(t && (Date.now() - ttime) < 7*24*60*60*1000) {
+    PB_TOKEN = t;
+  }
+})();
+
+// ── CRUD Hilfsfunktionen ─────────────────────────────
+async function pbList(collection, filter, mandant) {
+  try {
+    var params = new URLSearchParams();
+    params.set("perPage", "200");
+    params.set("sort", "-created");
+    var filters = [];
+    if(mandant) filters.push('mandant="'+mandant+'"');
+    if(filter) filters.push(filter);
+    if(filters.length) params.set("filter", filters.join(" && "));
+    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records?"+params, {
+      headers: pbHeaders()
+    });
+    var d = await r.json();
+    return d.items || [];
+  } catch(e) { console.warn("pbList Fehler:", collection, e); return []; }
+}
+
+async function pbCreate(collection, data) {
+  try {
+    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records", {
+      method: "POST",
+      headers: pbHeaders(),
+      body: JSON.stringify(data)
+    });
+    return await r.json();
+  } catch(e) { console.warn("pbCreate Fehler:", e); return null; }
+}
+
+async function pbUpdate(collection, id, data) {
+  try {
+    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records/"+id, {
+      method: "PATCH",
+      headers: pbHeaders(),
+      body: JSON.stringify(data)
+    });
+    return await r.json();
+  } catch(e) { console.warn("pbUpdate Fehler:", e); return null; }
+}
+
+async function pbDelete(collection, id) {
+  try {
+    await fetch(PB_URL+"/api/collections/"+collection+"/records/"+id, {
+      method: "DELETE",
+      headers: pbHeaders()
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── Mandant-abhängig laden ───────────────────────────
+async function pbLadeAlles(mandant) {
+  if(!PB_TOKEN) {
+    console.warn("Kein PB Token - lade aus localStorage");
+    return false;
+  }
+  nt("Daten werden geladen...");
+  try {
+    var [kunden, angebote, auftraege, rechnungen, mitarbeiter] = await Promise.all([
+      pbList("kunden", null, mandant),
+      pbList("angebote", null, mandant),
+      pbList("auftraege", null, mandant),
+      pbList("rechnungen", null, mandant),
+      pbList("mitarbeiter", null, mandant)
+    ]);
+
+    // Daten in lokale Variablen schreiben
+    KD = kunden.map(function(k) { return pbKundeToLocal(k); });
+    ANGEBOTE = angebote.map(function(a) { return pbAngebotToLocal(a); });
+    AUFTRAEGE = auftraege.map(function(a) { return pbAuftragToLocal(a); });
+    RECHNUNGEN = rechnungen.map(function(r) { return pbRechnungToLocal(r); });
+    MA = mitarbeiter.map(function(m) { return pbMAToLocal(m); });
+
+    // Counter anpassen
+    nxtK = KD.length + 1;
+    nxtAN = ANGEBOTE.length + 1;
+    nxtAU = AUFTRAEGE.length + 1;
+    nxtRE = RECHNUNGEN.length + 1;
+
+    renderK(KD);
+    renderAngebote();
+    renderAuftraege();
+    renderRechnungen();
+    renderMA();
+    nt("Daten geladen — "+KD.length+" Kunden, "+AUFTRAEGE.length+" Aufträge");
+    return true;
+  } catch(e) {
+    console.warn("Ladefehler:", e);
+    nt("Verbindungsfehler — arbeite offline");
+    return false;
+  }
+}
+
+// ── Konvertierung PB → Lokal ─────────────────────────
+function pbKundeToLocal(k) {
+  return {
+    _pbId: k.id,
+    nr: k.kundennr || "K-"+k.id.substring(0,6),
+    vn: k.vorname||"", nn: k.nachname||"",
+    fi: k.firma||"", str: k.strasse||"",
+    plz: k.plz||"", ort: k.ort||"",
+    tel: k.telefon||"", em: k.email||"",
+    em2: k.email2||"", nl: k.newsletter||false,
+    deb: k.debitor_nr||"", kred: k.kreditor_nr||"",
+    status: "aktiv", mandant: k.mandant
+  };
+}
+
+function pbAngebotToLocal(a) {
+  return {
+    _pbId: a.id,
+    nr: a.angebotsnr||"AN-"+a.id.substring(0,6),
+    datum: a.datum||"", kunde: a.kunde||"",
+    leistung: a.leistung||"", netto: parseFloat(a.netto)||0,
+    mwst: 19, status: a.status||"offen",
+    positionen: a.positionen||[]
+  };
+}
+
+function pbAuftragToLocal(a) {
+  return {
+    _pbId: a.id,
+    nr: a.auftragsnr||"AU-"+a.id.substring(0,6),
+    datum: a.datum||"", kunde: a.kunde||"",
+    leistung: a.leistung||"", ma: a.mitarbeiter||"",
+    auftragswert: parseFloat(a.auftragswert)||0,
+    netto: parseFloat(a.auftragswert)||0,
+    mwst: 19, status: a.status||"geplant",
+    angebotNr: a.angebotsnr||"", rechnungen: []
+  };
+}
+
+function pbRechnungToLocal(r) {
+  return {
+    _pbId: r.id,
+    nr: r.rechnungsnr||"RE-"+r.id.substring(0,6),
+    datum: r.datum||"", faellig: r.faellig||"",
+    kunde: r.kunde||"", leistung: r.leistung||"",
+    positionen: r.positionen||[],
+    netto: parseFloat(r.netto)||0,
+    steuerKey: r.steuer_key||"s19",
+    abschlagTyp: r.abschlag_typ||"",
+    abschlagNr: r.abschlag_nr||1,
+    status: r.status||"offen",
+    zahlungen: r.zahlungen||[],
+    auftragNr: r.auftragsnr||""
+  };
+}
+
+function pbMAToLocal(m) {
+  return {
+    _pbId: m.id,
+    name: m.name||"", rolle: m.rolle||"",
+    tel: m.telefon||"", em: m.email||"",
+    status: m.status||"aktiv", auftrag: ""
+  };
+}
+
+// ── Lokal → PB Format ────────────────────────────────
+function localKundeToPB(k, mandant) {
+  return {
+    kundennr: k.nr, vorname: k.vn, nachname: k.nn,
+    firma: k.fi, strasse: k.str, plz: k.plz, ort: k.ort,
+    telefon: k.tel, email: k.em, email2: k.em2||"",
+    newsletter: k.nl||false, debitor_nr: k.deb||"",
+    kreditor_nr: k.kred||"", mandant: mandant||AKTIVER_MANDANT||"live"
+  };
+}
+
+function localAngebotToPB(a, mandant) {
+  return {
+    angebotsnr: a.nr, kunde: a.kunde, leistung: a.leistung,
+    netto: a.netto, mwst: a.mwst||19, status: a.status,
+    positionen: a.positionen||[], datum: a.datum,
+    mandant: mandant||AKTIVER_MANDANT||"live"
+  };
+}
+
+function localAuftragToPB(a, mandant) {
+  return {
+    auftragsnr: a.nr, kunde: a.kunde, leistung: a.leistung,
+    mitarbeiter: a.ma||"", auftragswert: a.auftragswert||a.netto||0,
+    status: a.status, angebotsnr: a.angebotNr||"",
+    datum: a.datum, mandant: mandant||AKTIVER_MANDANT||"live"
+  };
+}
+
+function localRechnungToPB(r, mandant) {
+  return {
+    rechnungsnr: r.nr, auftragsnr: r.auftragNr||"",
+    kunde: r.kunde, leistung: r.leistung,
+    positionen: r.positionen||[], netto: r.netto,
+    steuer_key: r.steuerKey||"s19",
+    abschlag_typ: r.abschlagTyp||"",
+    abschlag_nr: r.abschlagNr||1,
+    status: r.status, zahlungen: r.zahlungen||[],
+    faellig: r.faellig||"", datum: r.datum,
+    mandant: mandant||AKTIVER_MANDANT||"live"
+  };
+}
+
+// ── Speichern mit PB ─────────────────────────────────
+async function pbSaveKunde(k) {
+  var data = localKundeToPB(k);
+  if(k._pbId) return await pbUpdate("kunden", k._pbId, data);
+  return await pbCreate("kunden", data);
+}
+
+async function pbSaveAngebot(a) {
+  var data = localAngebotToPB(a);
+  if(a._pbId) return await pbUpdate("angebote", a._pbId, data);
+  return await pbCreate("angebote", data);
+}
+
+async function pbSaveAuftrag(a) {
+  var data = localAuftragToPB(a);
+  if(a._pbId) return await pbUpdate("auftraege", a._pbId, data);
+  return await pbCreate("auftraege", data);
+}
+
+async function pbSaveRechnung(r) {
+  var data = localRechnungToPB(r);
+  if(r._pbId) return await pbUpdate("rechnungen", r._pbId, data);
+  return await pbCreate("rechnungen", data);
+}
+
+// ── PB Login Modal ───────────────────────────────────
+function openPBLogin() {
+  var modal = document.getElementById("mdl-pb-login");
+  if(modal) modal.classList.add("open");
+}
+
+async function doPBLogin() {
+  var pw = document.getElementById("pb-pw");
+  if(!pw) return;
+  var ok = await pbLogin(pw.value);
+  if(ok) {
+    closeMdl("pb-login");
+    nt("Mit Datenbank verbunden!");
+    if(AKTIVER_MANDANT) await pbLadeAlles(AKTIVER_MANDANT);
+    updatePBStatus(true);
+  } else {
+    alert("Falches Passwort oder Verbindungsfehler!");
+  }
+}
+
+function updatePBStatus(connected) {
+  var el = document.getElementById("pb-status");
+  if(!el) return;
+  el.innerHTML = connected
+    ? '<span style="color:#1D9E75">&#9679; Datenbank verbunden</span>'
+    : '<span style="color:#E24B4A">&#9679; Offline (localStorage)</span>';
+}
+
+// Beim Start prüfen ob PB erreichbar
+(async function checkPB() {
+  try {
+    var r = await fetch(PB_URL+"/api/health", {signal: AbortSignal.timeout(3000)});
+    var d = await r.json();
+    if(d.code === 200) {
+      updatePBStatus(PB_TOKEN ? true : false);
+      if(!PB_TOKEN) {
+        // Token fehlt — Login anzeigen
+        setTimeout(openPBLogin, 500);
+      }
+    }
+  } catch(e) {
+    updatePBStatus(false);
+    console.warn("PocketBase nicht erreichbar — arbeite offline");
+  }
+})();
+
 
 
 
@@ -633,7 +954,6 @@ function goTo(id){
   if(id==="auftraege")renderAuftraege();
   if(id==="rechnungen")renderRechnungen();
   if(id==="mitarbeiter")renderMA();
-  if(id==="dashboard"){setTimeout(renderNotifs,50);}
 }
 
 function showPanel(type,id){
@@ -795,8 +1115,7 @@ function saveKunde(){
   var nr="K-2025-00"+nxtK;nxtK++;
   var k={nr:nr,vn:document.getElementById("nkvn").value,nn:document.getElementById("nknn").value,fi:document.getElementById("nkfi").value,str:document.getElementById("nkst").value,plz:document.getElementById("nkplz").value,ort:document.getElementById("nkort").value,tel:document.getElementById("nktel").value,em:document.getElementById("nkem").value,em2:document.getElementById("nkem2").value,nl:document.getElementById("nknl").value==="1",deb:document.getElementById("nkdeb").value||("1000"+nxtK),kred:document.getElementById("nkkred").value};
   KD.unshift(k);renderK(KD);closeMdl("kunde");
-  if(typeof PB_TOKEN!=="undefined"&&PB_TOKEN){pbSaveKunde(k).then(function(r){if(r&&r.id)k._pbId=r.id;});}else{saveDaten();}
-  nt("Kunde "+nr+" gespeichert");
+  nt("Kunde "+nr+" angelegt - Bestaetigung per E-Mail gesendet");
 }
 
 function saveKundePanel(nr){
@@ -877,7 +1196,7 @@ function saveAuftrag(){
   renderAuftraege();
   closeMdl("auftrag");
   closePanel();
-  if(typeof PB_TOKEN!=="undefined"&&PB_TOKEN){pbSaveAuftrag(au).then(function(r){if(r&&r.id)au._pbId=r.id;});}else{saveDaten();}
+  saveDaten();
   nt("Auftrag "+au.nr+" angelegt — "+au.leistung);
 }
 
@@ -1854,10 +2173,8 @@ function setMandant(id) {
   renderAuftraege();
   renderRechnungen();
   renderSteuerKeys();
-  setTimeout(renderNotifs,100);
 
   localStorage.setItem("tbe_last_mandant", id);
-  if(typeof pbLadeAlles==="function"&&PB_TOKEN){setTimeout(function(){pbLadeAlles(id);},400);}
 }
 
 function saveDaten() {
@@ -2004,374 +2321,61 @@ function clearLiveNow() {
 
 
 
-function renderNotifs() {
-  if(!AKTIVER_MANDANT) return;
-  try {
-    var notifs = JSON.parse(localStorage.getItem("tbe_notif_"+AKTIVER_MANDANT)||"[]");
-    var unread = notifs.filter(function(n){return !n.gelesen;});
-    var badge = document.getElementById("notif-badge");
-    var list = document.getElementById("notif-list");
-    if(!badge||!list) return;
-    badge.textContent = unread.length;
-    badge.style.display = unread.length > 0 ? "inline" : "none";
-    if(notifs.length === 0) {
-      list.innerHTML = '<div style="color:var(--sl);font-size:12px;padding:8px 0">Keine Meldungen von Handwerkern</div>';
-      return;
-    }
-    var h = "";
-    notifs.slice(0,8).forEach(function(n){
-      h += '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);'+(n.gelesen?"opacity:.55":"")+'">';
-      h += '<div style="width:8px;height:8px;border-radius:50%;background:'+(n.gelesen?"var(--bd)":"var(--ok)")+';flex-shrink:0;margin-top:5px"></div>';
-      h += '<div style="flex:1">';
-      h += '<div style="font-size:13px;font-weight:'+(n.gelesen?"400":"600")+'">'+n.kunde+' — '+n.auftragNr+'</div>';
-      h += '<div style="font-size:12px;color:var(--sl)">'+n.ma+' | '+n.datum+' '+n.einzeit+' – '+n.auszeit+' ('+n.dauer+')</div>';
-      h += '<div style="font-size:11px;color:var(--sl);margin-top:2px">';
-      if(n.fotos) h += n.fotos+' Fotos &nbsp;';
-      if(n.sig) h += '&#10003; Unterschrift &nbsp;';
-      if(n.gps_ein) h += '&#128205; GPS &nbsp;';
-      h += '</div></div>';
-      h += '<button class="btn bs bsm" data-nid="'+n.id+'" onclick="markNotifGelesen(this.dataset.nid)">Gelesen</button>';
-      h += '</div>';
-    });
-    list.innerHTML = h;
-  } catch(e) { console.warn("renderNotifs Fehler:", e); }
+
+
+function doPBLoginInline(){
+  var pw=document.getElementById("pb-pw-inline");
+  if(!pw||!pw.value){nt("Bitte Passwort eingeben");return;}
+  nt("Verbinde...");
+  pbLogin(pw.value).then(function(ok){
+    if(ok){
+      var b=document.getElementById("pb-login-banner");
+      if(b)b.style.display="none";
+      updatePBStatus(true);
+      nt("Datenbank verbunden!");
+      if(typeof AKTIVER_MANDANT!=="undefined"&&AKTIVER_MANDANT)pbLadeAlles(AKTIVER_MANDANT);
+    }else{nt("Falsches Passwort!");}
+  });
 }
 
-function markNotifGelesen(id) {
-  if(!AKTIVER_MANDANT) return;
-  try {
-    var key = "tbe_notif_"+AKTIVER_MANDANT;
-    var notifs = JSON.parse(localStorage.getItem(key)||"[]");
-    notifs.forEach(function(n){ if(n.id===id) n.gelesen=true; });
-    localStorage.setItem(key, JSON.stringify(notifs));
-    renderNotifs();
-  } catch(e) {}
+// setMandant PB-Anbindung
+var _origSetMandant = typeof setMandant==="function" ? setMandant : null;
+if(_origSetMandant){
+  setMandant = function(id){
+    _origSetMandant(id);
+    if(PB_TOKEN&&id){setTimeout(function(){pbLadeAlles(id);},400);}
+  };
 }
 
-'</'+'script>abel+'</option>';
+// checkPB beim Start
+(function(){
+  fetch(PB_URL+"/api/health")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.code===200){
+        if(PB_TOKEN){
+          updatePBStatus(true);
+        }else{
+          updatePBStatus(false);
+          var b=document.getElementById("pb-login-banner");
+          if(b)b.style.display="";
+        }
+      }
+    })
+    .catch(function(e){
+      console.warn("PB nicht erreichbar:",e);
+      updatePBStatus(false);
     });
-  }
-  // Letzten Mandant laden oder Auswahl zeigen
-  var last = localStorage.getItem("tbe_last_mandant");
-  if(last && MANDANTEN[last]) {
-    setMandant(last);
-  } else {
-    // Erst rendern dann Modal zeigen
-    renderK(KD);
-    renderAngebote();
-    renderAuftraege();
-    renderRechnungen();
-    renderSteuerKeys();
-    setTimeout(function(){ openMdl("mandant"); }, 150);
-  }
 })();
 
-
-
-
-// ═══════════════════════════════════════════════════════
-// POCKETBASE API LAYER
-// Verbindet Admin-Portal mit PocketBase auf dem VPS
-// ═══════════════════════════════════════════════════════
-
-var PB_URL = "https://pb.tbe-terassen.de";
-var PB_TOKEN = null;
-var PB_ADMIN_EMAIL = "admin@tbe-terassen.de";
-
-// ── Auth ─────────────────────────────────────────────
-async function pbLogin(password) {
-  try {
-    var r = await fetch(PB_URL+"/api/admins/auth-with-password", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({identity: PB_ADMIN_EMAIL, password: password})
-    });
-    var d = await r.json();
-    if(d.token) {
-      PB_TOKEN = d.token;
-      localStorage.setItem("pb_token", d.token);
-      localStorage.setItem("pb_token_time", Date.now().toString());
-      return true;
-    }
-    return false;
-  } catch(e) { console.warn("PB Login Fehler:", e); return false; }
+// PB-Status anzeigen
+function updatePBStatus(ok){
+  var el=document.getElementById("pb-status");
+  if(!el)return;
+  el.innerHTML=ok
+    ?'<span style="color:#1D9E75">&#9679; Datenbank verbunden</span>'
+    :'<span style="color:#E24B4A">&#9679; Offline</span>';
 }
-
-function pbHeaders() {
-  return {
-    "Content-Type": "application/json",
-    "Authorization": PB_TOKEN || ""
-  };
-}
-
-// Token aus localStorage wiederherstellen
-(function() {
-  var t = localStorage.getItem("pb_token");
-  var ttime = parseInt(localStorage.getItem("pb_token_time") || "0");
-  // Token 7 Tage gültig
-  if(t && (Date.now() - ttime) < 7*24*60*60*1000) {
-    PB_TOKEN = t;
-  }
-})();
-
-// ── CRUD Hilfsfunktionen ─────────────────────────────
-async function pbList(collection, filter, mandant) {
-  try {
-    var params = new URLSearchParams();
-    params.set("perPage", "200");
-    params.set("sort", "-created");
-    var filters = [];
-    if(mandant) filters.push('mandant="'+mandant+'"');
-    if(filter) filters.push(filter);
-    if(filters.length) params.set("filter", filters.join(" && "));
-    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records?"+params, {
-      headers: pbHeaders()
-    });
-    var d = await r.json();
-    return d.items || [];
-  } catch(e) { console.warn("pbList Fehler:", collection, e); return []; }
-}
-
-async function pbCreate(collection, data) {
-  try {
-    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records", {
-      method: "POST",
-      headers: pbHeaders(),
-      body: JSON.stringify(data)
-    });
-    return await r.json();
-  } catch(e) { console.warn("pbCreate Fehler:", e); return null; }
-}
-
-async function pbUpdate(collection, id, data) {
-  try {
-    var r = await fetch(PB_URL+"/api/collections/"+collection+"/records/"+id, {
-      method: "PATCH",
-      headers: pbHeaders(),
-      body: JSON.stringify(data)
-    });
-    return await r.json();
-  } catch(e) { console.warn("pbUpdate Fehler:", e); return null; }
-}
-
-async function pbDelete(collection, id) {
-  try {
-    await fetch(PB_URL+"/api/collections/"+collection+"/records/"+id, {
-      method: "DELETE",
-      headers: pbHeaders()
-    });
-    return true;
-  } catch(e) { return false; }
-}
-
-// ── Mandant-abhängig laden ───────────────────────────
-async function pbLadeAlles(mandant) {
-  if(!PB_TOKEN) {
-    console.warn("Kein PB Token - lade aus localStorage");
-    return false;
-  }
-  nt("Daten werden geladen...");
-  try {
-    var [kunden, angebote, auftraege, rechnungen, mitarbeiter] = await Promise.all([
-      pbList("kunden", null, mandant),
-      pbList("angebote", null, mandant),
-      pbList("auftraege", null, mandant),
-      pbList("rechnungen", null, mandant),
-      pbList("mitarbeiter", null, mandant)
-    ]);
-
-    // Daten in lokale Variablen schreiben
-    KD = kunden.map(function(k) { return pbKundeToLocal(k); });
-    ANGEBOTE = angebote.map(function(a) { return pbAngebotToLocal(a); });
-    AUFTRAEGE = auftraege.map(function(a) { return pbAuftragToLocal(a); });
-    RECHNUNGEN = rechnungen.map(function(r) { return pbRechnungToLocal(r); });
-    MA = mitarbeiter.map(function(m) { return pbMAToLocal(m); });
-
-    // Counter anpassen
-    nxtK = KD.length + 1;
-    nxtAN = ANGEBOTE.length + 1;
-    nxtAU = AUFTRAEGE.length + 1;
-    nxtRE = RECHNUNGEN.length + 1;
-
-    renderK(KD);
-    renderAngebote();
-    renderAuftraege();
-    renderRechnungen();
-    renderMA();
-    nt("Daten geladen — "+KD.length+" Kunden, "+AUFTRAEGE.length+" Aufträge");
-    return true;
-  } catch(e) {
-    console.warn("Ladefehler:", e);
-    nt("Verbindungsfehler — arbeite offline");
-    return false;
-  }
-}
-
-// ── Konvertierung PB → Lokal ─────────────────────────
-function pbKundeToLocal(k) {
-  return {
-    _pbId: k.id,
-    nr: k.kundennr || "K-"+k.id.substring(0,6),
-    vn: k.vorname||"", nn: k.nachname||"",
-    fi: k.firma||"", str: k.strasse||"",
-    plz: k.plz||"", ort: k.ort||"",
-    tel: k.telefon||"", em: k.email||"",
-    em2: k.email2||"", nl: k.newsletter||false,
-    deb: k.debitor_nr||"", kred: k.kreditor_nr||"",
-    status: "aktiv", mandant: k.mandant
-  };
-}
-
-function pbAngebotToLocal(a) {
-  return {
-    _pbId: a.id,
-    nr: a.angebotsnr||"AN-"+a.id.substring(0,6),
-    datum: a.datum||"", kunde: a.kunde||"",
-    leistung: a.leistung||"", netto: parseFloat(a.netto)||0,
-    mwst: 19, status: a.status||"offen",
-    positionen: a.positionen||[]
-  };
-}
-
-function pbAuftragToLocal(a) {
-  return {
-    _pbId: a.id,
-    nr: a.auftragsnr||"AU-"+a.id.substring(0,6),
-    datum: a.datum||"", kunde: a.kunde||"",
-    leistung: a.leistung||"", ma: a.mitarbeiter||"",
-    auftragswert: parseFloat(a.auftragswert)||0,
-    netto: parseFloat(a.auftragswert)||0,
-    mwst: 19, status: a.status||"geplant",
-    angebotNr: a.angebotsnr||"", rechnungen: []
-  };
-}
-
-function pbRechnungToLocal(r) {
-  return {
-    _pbId: r.id,
-    nr: r.rechnungsnr||"RE-"+r.id.substring(0,6),
-    datum: r.datum||"", faellig: r.faellig||"",
-    kunde: r.kunde||"", leistung: r.leistung||"",
-    positionen: r.positionen||[],
-    netto: parseFloat(r.netto)||0,
-    steuerKey: r.steuer_key||"s19",
-    abschlagTyp: r.abschlag_typ||"",
-    abschlagNr: r.abschlag_nr||1,
-    status: r.status||"offen",
-    zahlungen: r.zahlungen||[],
-    auftragNr: r.auftragsnr||""
-  };
-}
-
-function pbMAToLocal(m) {
-  return {
-    _pbId: m.id,
-    name: m.name||"", rolle: m.rolle||"",
-    tel: m.telefon||"", em: m.email||"",
-    status: m.status||"aktiv", auftrag: ""
-  };
-}
-
-// ── Lokal → PB Format ────────────────────────────────
-function localKundeToPB(k, mandant) {
-  return {
-    kundennr: k.nr, vorname: k.vn, nachname: k.nn,
-    firma: k.fi, strasse: k.str, plz: k.plz, ort: k.ort,
-    telefon: k.tel, email: k.em, email2: k.em2||"",
-    newsletter: k.nl||false, debitor_nr: k.deb||"",
-    kreditor_nr: k.kred||"", mandant: mandant||AKTIVER_MANDANT||"live"
-  };
-}
-
-function localAngebotToPB(a, mandant) {
-  return {
-    angebotsnr: a.nr, kunde: a.kunde, leistung: a.leistung,
-    netto: a.netto, mwst: a.mwst||19, status: a.status,
-    positionen: a.positionen||[], datum: a.datum,
-    mandant: mandant||AKTIVER_MANDANT||"live"
-  };
-}
-
-function localAuftragToPB(a, mandant) {
-  return {
-    auftragsnr: a.nr, kunde: a.kunde, leistung: a.leistung,
-    mitarbeiter: a.ma||"", auftragswert: a.auftragswert||a.netto||0,
-    status: a.status, angebotsnr: a.angebotNr||"",
-    datum: a.datum, mandant: mandant||AKTIVER_MANDANT||"live"
-  };
-}
-
-function localRechnungToPB(r, mandant) {
-  return {
-    rechnungsnr: r.nr, auftragsnr: r.auftragNr||"",
-    kunde: r.kunde, leistung: r.leistung,
-    positionen: r.positionen||[], netto: r.netto,
-    steuer_key: r.steuerKey||"s19",
-    abschlag_typ: r.abschlagTyp||"",
-    abschlag_nr: r.abschlagNr||1,
-    status: r.status, zahlungen: r.zahlungen||[],
-    faellig: r.faellig||"", datum: r.datum,
-    mandant: mandant||AKTIVER_MANDANT||"live"
-  };
-}
-
-// ── Speichern mit PB ─────────────────────────────────
-async function pbSaveKunde(k) {
-  var data = localKundeToPB(k);
-  if(k._pbId) return await pbUpdate("kunden", k._pbId, data);
-  return await pbCreate("kunden", data);
-}
-
-async function pbSaveAngebot(a) {
-  var data = localAngebotToPB(a);
-  if(a._pbId) return await pbUpdate("angebote", a._pbId, data);
-  return await pbCreate("angebote", data);
-}
-
-async function pbSaveAuftrag(a) {
-  var data = localAuftragToPB(a);
-  if(a._pbId) return await pbUpdate("auftraege", a._pbId, data);
-  return await pbCreate("auftraege", data);
-}
-
-async function pbSaveRechnung(r) {
-  var data = localRechnungToPB(r);
-  if(r._pbId) return await pbUpdate("rechnungen", r._pbId, data);
-  return await pbCreate("rechnungen", data);
-}
-
-// ── PB Login Modal ───────────────────────────────────
-function openPBLogin() {
-  var modal = document.getElementById("mdl-pb-login");
-  if(modal) modal.classList.add("open");
-}
-
-async function doPBLogin() {
-  var pw = document.getElementById("pb-pw");
-  if(!pw) return;
-  var ok = await pbLogin(pw.value);
-  if(ok) {
-    closeMdl("pb-login");
-    nt("Mit Datenbank verbunden!");
-    if(AKTIVER_MANDANT) await pbLadeAlles(AKTIVER_MANDANT);
-    updatePBStatus(true);
-  } else {
-    alert("Falches Passwort oder Verbindungsfehler!");
-  }
-}
-
-function updatePBStatus(connected) {
-  var el = document.getElementById("pb-status");
-  if(!el) return;
-  el.innerHTML = connected
-    ? '<span style="color:#1D9E75">&#9679; Datenbank verbunden</span>'
-    : '<span style="color:#E24B4A">&#9679; Offline (localStorage)</span>';
-}
-
-// Beim Start prüfen ob PB erreichbar
-(function checkPB(){fetch(PB_URL+"/api/health").then(function(r){return r.json();}).then(function(d){if(d.code===200){if(PB_TOKEN){updatePBStatus(true);if(AKTIVER_MANDANT)pbLadeAlles(AKTIVER_MANDANT);}else{updatePBStatus(false);var b=document.getElementById("pb-login-banner");if(b)b.style.display="";}}}).catch(function(){updatePBStatus(false);});})();
-
-function doPBLoginInline(){var pw=document.getElementById("pb-pw-inline");if(!pw||!pw.value){nt("Bitte Passwort eingeben");return;}nt("Verbinde mit Datenbank...");pbLogin(pw.value).then(function(ok){if(ok){var b=document.getElementById("pb-login-banner");if(b)b.style.display="none";updatePBStatus(true);nt("Datenbank verbunden!");if(AKTIVER_MANDANT)pbLadeAlles(AKTIVER_MANDANT);}else{nt("Falsches Passwort!");}});}
 
 </script>
 
@@ -2399,7 +2403,6 @@ function doPBLoginInline(){var pw=document.getElementById("pb-pw-inline");if(!pw
 </div>
 <p style="font-size:11px;color:#6B7F89;text-align:center;line-height:1.7;padding-top:14px;border-top:1px solid #E5E0D8">Test- und Live-Daten werden vollstaendig getrennt gespeichert.<br>Wechsel jederzeit ueber den Button unten links in der Sidebar.</p>
 </div></div></div>
-
-<div class="mbg" id="mdl-pb-login" style="background:rgba(0,0,0,.8)"><div class="mdl" style="width:380px"><div class="mt">Datenbank-Verbindung</div><div class="ms">PocketBase auf 187.124.180.252</div><div class="fg1" style="gap:10px;margin-bottom:14px"><div class="fl"><label>Admin-Passwort</label><input type="password" id="pb-pw" placeholder="Dein PocketBase Passwort" onkeydown="if(event.key==='Enter')doPBLogin()"></div></div><div style="font-size:11px;color:var(--sl);margin-bottom:12px">Dieses Passwort hast du beim Einrichten vergeben. Wird 7 Tage gespeichert.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn bs" onclick="closeMdl('pb-login');nt('Arbeite offline')">Offline</button><button class="btn bp" onclick="doPBLogin()">Verbinden</button></div></div></div>
+<div id="pb-status" style="padding:5px 12px;font-size:10px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto"><span style="color:rgba(255,255,255,.3)">&#9679; Verbinde...</span></div>
 </body>
 </html>
