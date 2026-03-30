@@ -141,6 +141,14 @@ body{font-family:sans-serif;background:var(--bg);color:var(--dk);min-height:100v
 </div>
 <div class="main">
 <div class="pg active" id="pg-dashboard">
+<div id="pb-login-banner" style="display:none;background:rgba(139,105,20,.08);border:1px solid #C9963A;border-radius:8px;padding:12px 16px;margin-bottom:16px">
+<div style="font-size:13px;font-weight:600;color:#8B6914;margin-bottom:6px">Datenbank verbinden — pb.tbe-terassen.de</div>
+<div style="display:flex;gap:8px;align-items:center">
+<input type="password" id="pb-pw-inline" placeholder="PocketBase Passwort" style="flex:1;border:1px solid var(--bd);border-radius:6px;padding:7px 10px;font-size:13px;font-family:sans-serif" onkeydown="if(event.key==='Enter')doPBLoginInline()">
+<button class="btn bp bsm" onclick="doPBLoginInline()">Verbinden</button>
+<button class="btn bs bsm" onclick="document.getElementById('pb-login-banner').style.display='none'">Offline</button>
+</div></div>
+
 <div class="ph"><div><div class="pt">Dashboard</div><div class="ps">Uebersicht April 2025</div></div></div>
 <div class="sr">
 <div class="sc"><div class="sl2">Offene Anfragen</div><div class="sv">4</div></div>
@@ -2361,22 +2369,9 @@ function updatePBStatus(connected) {
 }
 
 // Beim Start prüfen ob PB erreichbar
-(async function checkPB() {
-  try {
-    var r = await fetch(PB_URL+"/api/health", {signal: AbortSignal.timeout(3000)});
-    var d = await r.json();
-    if(d.code === 200) {
-      updatePBStatus(PB_TOKEN ? true : false);
-      if(!PB_TOKEN) {
-        // Token fehlt — Login anzeigen
-        setTimeout(openPBLogin, 500);
-      }
-    }
-  } catch(e) {
-    updatePBStatus(false);
-    console.warn("PocketBase nicht erreichbar — arbeite offline");
-  }
-})();
+(function checkPB(){fetch(PB_URL+"/api/health").then(function(r){return r.json();}).then(function(d){if(d.code===200){if(PB_TOKEN){updatePBStatus(true);if(AKTIVER_MANDANT)pbLadeAlles(AKTIVER_MANDANT);}else{updatePBStatus(false);var b=document.getElementById("pb-login-banner");if(b)b.style.display="";}}}).catch(function(){updatePBStatus(false);});})();
+
+function doPBLoginInline(){var pw=document.getElementById("pb-pw-inline");if(!pw||!pw.value){nt("Bitte Passwort eingeben");return;}nt("Verbinde mit Datenbank...");pbLogin(pw.value).then(function(ok){if(ok){var b=document.getElementById("pb-login-banner");if(b)b.style.display="none";updatePBStatus(true);nt("Datenbank verbunden!");if(AKTIVER_MANDANT)pbLadeAlles(AKTIVER_MANDANT);}else{nt("Falsches Passwort!");}});}
 
 </script>
 
